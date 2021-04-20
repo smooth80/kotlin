@@ -971,6 +971,12 @@ task worker11(type: KonanLocalTest) {
     source = "runtime/workers/worker11.kt"
 }
 
+task worker_exception_messages(type: KonanLocalTest) {
+    enabled = (project.testTarget != 'wasm32') && // Workers need pthreads.
+            !isExperimentalMM  // Experimental MM doesn't support multiple mutators yet.
+    source = "runtime/workers/worker_exception_messages.kt"
+}
+
 standaloneTest("worker_threadlocal_no_leak") {
     disabled = (project.testTarget == 'wasm32') || // Needs pthreads.
         isExperimentalMM  // Experimental MM doesn't support multiple mutators yet.
