@@ -173,18 +173,14 @@ class CodeConformanceTest : TestCase() {
 
         val atAuthorPattern = Pattern.compile("/\\*.+@author.+\\*/", Pattern.DOTALL)
 
-        val root = nonSourcesMatcher.root
-
         val tests = listOf(
             TestData(
                 "%d source files contain @author javadoc tag.\nPlease remove them or exclude in this test:\n%s"
-            ) { file, source ->
+            ) { _, source ->
                 // substring check is an optimization
                 "@author" in source && atAuthorPattern.matcher(source).find() &&
                         "ASM: a very small and fast Java bytecode manipulation framework" !in source &&
-                        "package org.jetbrains.kotlin.tools.projectWizard.settings.version.maven" !in source &&
-                        !file.relativeTo(root).systemIndependentPath.startsWith("kotlin-ultimate/ide/common-cidr-native") &&
-                        file.name != "CLionKonanProjectDataService.kt"
+                        "package org.jetbrains.kotlin.tools.projectWizard.settings.version.maven" !in source
             },
             TestData(
                 "%d source files use something from com.beust.jcommander.internal package.\n" +
@@ -357,7 +353,7 @@ class CodeConformanceTest : TestCase() {
 
         if (repoOccurrences.isNotEmpty()) {
             val repoOccurrencesStableOrder = repoOccurrences
-                .map { RepoOccurrences(it.repo, it.files.sortedBy { it.path }) }
+                .map { occurrence -> RepoOccurrences(occurrence.repo, occurrence.files.sortedBy { file -> file.path }) }
                 .sortedBy { it.repo }
             fail(
                 buildString {
@@ -399,4 +395,4 @@ class CodeConformanceTest : TestCase() {
 }
 
 private fun String.ensureFileOrEndsWithSlash() =
-    if (endsWith("/") || "." in substringAfterLast('/')) this else this + "/"
+    if (endsWith("/") || "." in substringAfterLast('/')) this else "$this/"
