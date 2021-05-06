@@ -22,7 +22,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.runner.RunWith
 import java.io.File
-import java.io.IOException
 import java.util.regex.Pattern
 import kotlin.test.*
 
@@ -251,6 +250,7 @@ abstract class BaseGradleIT {
         val useFir: Boolean = false,
         val customEnvironmentVariables: Map<String, String> = mapOf(),
         val dryRun: Boolean = false,
+        val abiSnapshot: Boolean = false,
     )
 
     enum class ConfigurationCacheProblems {
@@ -270,20 +270,17 @@ abstract class BaseGradleIT {
         val gradleVersionRequirement: GradleVersionRequired = defaultGradleVersion,
         directoryPrefix: String? = null,
         val minLogLevel: LogLevel = LogLevel.DEBUG,
-        val addHeapDumpOptions: Boolean = true,
-        workingDirRelativePath: String? = null
+        val addHeapDumpOptions: Boolean = true
     ) {
         internal val testCase = this@BaseGradleIT
 
         val resourceDirName = if (directoryPrefix != null) "$directoryPrefix/$projectName" else projectName
         open val resourcesRoot = File(resourcesRootFile, "testProject/$resourceDirName")
-        val projectWorkingDir = workingDirRelativePath?.let{ it -> workingDir.resolve(it) } ?: workingDir
-        val projectDir = File(projectWorkingDir.canonicalFile, projectName)
+        val projectDir = File(workingDir.canonicalFile, projectName)
 
         open fun setupWorkingDir() {
-            if (!projectWorkingDir.mkdirs()) throw IOException("Could not create folder ${projectDir.absolutePath}")
             if (!projectDir.isDirectory || projectDir.listFiles().isEmpty()) {
-                copyRecursively(this.resourcesRoot, projectWorkingDir)
+                copyRecursively(this.resourcesRoot, workingDir)
                 if (addHeapDumpOptions) {
                     addHeapDumpOptionsToPropertiesFile()
                 }
@@ -405,7 +402,7 @@ abstract class BaseGradleIT {
     fun Project.build(
         vararg params: String,
         options: BuildOptions = defaultBuildOptions(),
-        projectDir: File = File(projectWorkingDir, projectName),
+        projectDir: File = File(workingDir, projectName),
         check: CompiledProject.() -> Unit
     ) {
         val wrapperVersion = chooseWrapperVersionOrFinishTest()
@@ -954,6 +951,9 @@ Finished executing task ':$taskName'|
             if (options.dryRun) {
                 add("--dry-run")
             }
+            if (options.abiSnapshot) {
+                add("-Pkotlin.incremental.classpath.snapshot.enabled=true")
+            }
 
             add("-Dorg.gradle.unsafe.configuration-cache=${options.configurationCache}")
             add("-Dorg.gradle.unsafe.configuration-cache-problems=${options.configurationCacheProblems.name.toLowerCase()}")
@@ -970,6 +970,7 @@ Finished executing task ':$taskName'|
             if (supportFailingBuildOnWarning && notUsingAgpWithWarnings && options.warningMode == WarningMode.Fail) {
                 add("--warning-mode=${WarningMode.Fail.name.toLowerCase()}")
             }
+
             addAll(options.freeCommandLineArgs)
         }
 

@@ -17,7 +17,7 @@ import java.util.*
 object ReportStatisticsToElasticSearch : ReportStatistics {
     val url = CompilerSystemProperties.KOTLIN_STAT_ENDPOINT_PROPERTY.value
     val user = CompilerSystemProperties.KOTLIN_STAT_USER_PROPERTY.value
-    val enable: Boolean = CompilerSystemProperties.KOTLIN_STAT_ENABLED_PROPERTY.value?.toBooleanLenient() ?: false
+    val enable = CompilerSystemProperties.KOTLIN_STAT_ENABLED_PROPERTY.toBooleanLenient()
 
     //TODO Do not store password as string
     val password = CompilerSystemProperties.KOTLIN_STAT_PASSWORD_PROPERTY.value
