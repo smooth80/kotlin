@@ -56,6 +56,8 @@ open class RawFirBuilder(
 
     private val stubMode get() = mode == RawFirBuilderMode.STUBS
 
+    protected open fun bindFunctionTarget(target: FirFunctionTarget, function: FirFunction<*>) = target.bind(function)
+
     var mode: RawFirBuilderMode = builderMode
         private set
 
@@ -375,7 +377,7 @@ open class RawFirBuilder(
                         }
                     }.also {
                         it.initContainingClassAttr()
-                        accessorTarget.bind(it)
+                        bindFunctionTarget(accessorTarget, it)
                         this@RawFirBuilder.context.firFunctionTargets.removeLast()
                     }
                 }
@@ -1061,7 +1063,7 @@ open class RawFirBuilder(
                 }
                 context.firFunctionTargets.removeLast()
             }.build().also {
-                target.bind(it)
+                bindFunctionTarget(target, it)
                 if (it is FirSimpleFunction) {
                     function.fillDanglingConstraintsTo(it)
                 }
@@ -1169,7 +1171,7 @@ open class RawFirBuilder(
                 }
                 context.firFunctionTargets.removeLast()
             }.also {
-                target.bind(it)
+                bindFunctionTarget(target, it)
             }
         }
 
@@ -1209,7 +1211,7 @@ open class RawFirBuilder(
                 this@RawFirBuilder.context.firFunctionTargets.removeLast()
             }.also {
                 it.containingClassAttr = currentDispatchReceiverType()!!.lookupTag
-                target.bind(it)
+                bindFunctionTarget(target, it)
             }
         }
 
