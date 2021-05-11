@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.structure.FileStructureCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve.FirLazyDeclarationResolver
+import org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve.ResolveType
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.firIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.sessions.FirIdeSessionProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.sessions.FirIdeSourcesSession
@@ -33,7 +34,6 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.util.FirElementFinder
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.findSourceNonLocalFirDeclaration
 import org.jetbrains.kotlin.idea.util.getElementTextInContext
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 internal class FirModuleResolveStateImpl(
     override val project: Project,
@@ -43,7 +43,6 @@ internal class FirModuleResolveStateImpl(
     val firLazyDeclarationResolver: FirLazyDeclarationResolver,
 ) : FirModuleResolveState() {
     override val rootModuleSession: FirIdeSourcesSession get() = sessionProvider.rootModuleSession
-
 
     /**
      * WARNING! This object contains scopes for all statements and declarations that were ever resolved.
@@ -59,7 +58,14 @@ internal class FirModuleResolveStateImpl(
         sessionProvider.getSession(moduleInfo)!!
 
     override fun getOrBuildFirFor(element: KtElement): FirElement =
-        elementBuilder.getOrBuildFirFor(element, firFileBuilder, rootModuleSession.cache, fileStructureCache, this)
+        elementBuilder.getOrBuildFirFor(
+            element = element,
+            firFileBuilder = firFileBuilder,
+            moduleFileCache = rootModuleSession.cache,
+            fileStructureCache = fileStructureCache,
+            firLazyDeclarationResolver = firLazyDeclarationResolver,
+            state = this
+        )
 
     override fun getOrBuildFirFile(ktFile: KtFile): FirFile =
         firFileBuilder.buildRawFirFileWithCaching(ktFile, rootModuleSession.cache, lazyBodiesMode = false)
@@ -96,15 +102,12 @@ internal class FirModuleResolveStateImpl(
 
         if (ktDeclaration == nonLocalNamedDeclaration) return nonLocalFirForNamedDeclaration
 
-        if (nonLocalFirForNamedDeclaration.resolvePhase < FirResolvePhase.BODY_RESOLVE) {
-            val cache = (nonLocalFirForNamedDeclaration.moduleData.session as FirIdeSourcesSession).cache
-            firLazyDeclarationResolver.lazyResolveDeclaration(
-                nonLocalFirForNamedDeclaration,
-                cache,
-                FirResolvePhase.BODY_RESOLVE,
-                checkPCE = false, /*TODO*/
-            )
-        }
+        firLazyDeclarationResolver.lazyResolveDeclaration(
+            firDeclarationToResolve = nonLocalFirForNamedDeclaration,
+            moduleFileCache = (nonLocalFirForNamedDeclaration.moduleData.session as FirIdeSourcesSession).cache,
+            toPhase = FirResolvePhase.BODY_RESOLVE,
+            checkPCE = false, /*TODO*/
+        )
         val firDeclaration = FirElementFinder.findElementIn<FirDeclaration>(nonLocalFirForNamedDeclaration) { firDeclaration ->
             when (val realPsi = firDeclaration.realPsi) {
                 is KtObjectLiteralExpression -> realPsi.objectDeclaration == ktDeclaration
@@ -117,14 +120,30 @@ internal class FirModuleResolveStateImpl(
     }
 
     override fun <D : FirDeclaration> resolveFirToPhase(declaration: D, toPhase: FirResolvePhase): D {
+        if (toPhase == FirResolvePhase.RAW_FIR) return declaration
         val fileCache = when (val session = declaration.moduleData.session) {
             is FirIdeSourcesSession -> session.cache
             else -> return declaration
         }
         firLazyDeclarationResolver.lazyResolveDeclaration(
-            declaration,
-            fileCache,
-            toPhase,
+            firDeclarationToResolve = declaration,
+            moduleFileCache = fileCache,
+            toPhase = toPhase,
+            checkPCE = true,
+        )
+        return declaration
+    }
+
+    override fun <D : FirDeclaration> resolveFirToResolveType(declaration: D, type: ResolveType): D {
+        if (type == ResolveType.NoResolve) return declaration
+        val fileCache = when (val session = declaration.moduleData.session) {
+            is FirIdeSourcesSession -> session.cache
+            else -> return declaration
+        }
+        firLazyDeclarationResolver.lazyResolveDeclaration(
+            firDeclaration = declaration,
+            moduleFileCache = fileCache,
+            toResolveType = type,
             checkPCE = true,
         )
         return declaration
