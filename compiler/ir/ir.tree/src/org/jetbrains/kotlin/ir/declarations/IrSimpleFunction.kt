@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 abstract class IrSimpleFunction :
     IrFunction(),
     IrOverridableDeclaration<IrSimpleFunctionSymbol>,
-    IrOverridableMember,
     IrAttributeContainer {
 
     abstract override val symbol: IrSimpleFunctionSymbol

@@ -48,7 +48,8 @@ interface IrDeclaration : IrStatement, IrSymbolOwner, IrMutableAnnotationContain
 
 abstract class IrDeclarationBase : IrElementBase(), IrDeclaration
 
-interface IrOverridableDeclaration<S : IrSymbol> : IrDeclaration {
+interface IrOverridableDeclaration<S : IrSymbol> : IrOverridableMember {
+    override val symbol: S
     var overriddenSymbols: List<S>
 }
 

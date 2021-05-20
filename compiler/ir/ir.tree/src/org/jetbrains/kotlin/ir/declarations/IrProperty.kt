@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 abstract class IrProperty :
     IrDeclarationBase(),
     IrPossiblyExternalDeclaration,
-    IrOverridableMember,
     IrOverridableDeclaration<IrPropertySymbol>,
     IrMetadataSourceOwner,
     IrAttributeContainer,
