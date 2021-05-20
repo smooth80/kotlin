@@ -26,7 +26,7 @@ fun evaluateConstants(irModuleFragment: IrModuleFragment) {
 }
 
 //TODO create abstract class that will be common for this and lowering
-class IrConstTransformer(irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
+class IrConstTransformer(private val irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
     private val interpreter = IrInterpreter(irBuiltIns)
 
     private fun IrExpression.replaceIfError(original: IrExpression): IrExpression {
@@ -105,6 +105,6 @@ class IrConstTransformer(irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
     private fun IrExpression.convertToConstIfPossible(type: IrType): IrExpression {
         if (this !is IrConst<*> || type is IrErrorType) return this
         if (type.isArray()) return this.convertToConstIfPossible((type as IrSimpleType).arguments.single().typeOrNull!!)
-        return this.value.toIrConst(type, this.startOffset, this.endOffset)
+        return this.value.toIrConst(type, irBuiltIns, this.startOffset, this.endOffset)
     }
 }
