@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.backend.common.ir.Ir
 import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.psi.PsiErrorBuilder
-import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.jvm.codegen.*
 import org.jetbrains.kotlin.backend.jvm.descriptors.JvmSharedVariablesManager
 import org.jetbrains.kotlin.backend.jvm.intrinsics.IrIntrinsicMethods
@@ -21,7 +20,6 @@ import org.jetbrains.kotlin.backend.jvm.lower.CollectionStubComputer
 import org.jetbrains.kotlin.backend.jvm.lower.JvmInnerClassesSupport
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.InlineClassAbi
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.MemoizedInlineClassReplacements
-import org.jetbrains.kotlin.backend.jvm.serialization.JvmGlobalDeclarationTable
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
@@ -51,6 +49,7 @@ class JvmBackendContext(
     val phaseConfig: PhaseConfig,
     val generatorExtensions: JvmGeneratorExtensions,
     val backendExtension: JvmBackendExtension,
+    val irSerializer: JvmIrSerializer?,
     val notifyCodegenStart: () -> Unit,
 ) : CommonBackendContext {
     // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
@@ -217,6 +216,4 @@ class JvmBackendContext(
 
         override fun shouldGenerateHandlerParameterForDefaultBodyFun() = true
     }
-
-    val declarationTable = DeclarationTable(JvmGlobalDeclarationTable())
 }
