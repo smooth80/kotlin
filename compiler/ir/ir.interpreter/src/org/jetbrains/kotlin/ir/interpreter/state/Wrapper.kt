@@ -34,12 +34,12 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex 
         when {
             javaClass == HashMap::class.java -> {
                 val nodeClass = javaClass.declaredClasses.single { it.name.contains("\$Node") }
-                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.isInterface }
+                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.name.asString() == "MutableMap" }
                 javaClassToIrClass += nodeClass to mutableMap.declarations.filterIsInstance<IrClass>().single()
             }
             javaClass == LinkedHashMap::class.java -> {
                 val entryClass = javaClass.declaredClasses.single { it.name.contains("\$Entry") }
-                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.isInterface }
+                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.name.asString() == "MutableMap" }
                 javaClassToIrClass += entryClass to mutableMap.declarations.filterIsInstance<IrClass>().single()
             }
             javaClass.canonicalName == "java.util.Collections.SingletonMap" -> {
@@ -92,7 +92,9 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex 
 
         // TODO remove later; used for tests only
         private val intrinsicClasses = setOf(
-            "kotlin.text.StringBuilder", "kotlin.Pair", "kotlin.collections.HashMap",
+            "kotlin.text.StringBuilder", "kotlin.Pair", "kotlin.collections.ArrayList",
+            "kotlin.collections.HashMap", "kotlin.collections.LinkedHashMap",
+            "kotlin.collections.HashSet", "kotlin.collections.LinkedHashSet",
             "kotlin.text.RegexOption", "kotlin.text.Regex", "kotlin.text.Regex.Companion", "kotlin.text.MatchGroup",
         )
 
@@ -240,6 +242,11 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex 
                 fqName == "kotlin.collections.ListIterator" || fqName == "kotlin.collections.MutableListIterator" -> ListIterator::class.java
                 fqName == "kotlin.collections.Iterator" || fqName == "kotlin.collections.MutableIterator" -> Iterator::class.java
                 fqName == "kotlin.collections.Map.Entry" || fqName == "kotlin.collections.MutableMap.MutableEntry" -> Map.Entry::class.java
+                fqName == "kotlin.collections.ArrayList" -> ArrayList::class.java
+                fqName == "kotlin.collections.HashMap" -> HashMap::class.java
+                fqName == "kotlin.collections.HashSet" -> HashSet::class.java
+                fqName == "kotlin.collections.LinkedHashMap" -> LinkedHashMap::class.java
+                fqName == "kotlin.collections.LinkedHashSet" -> LinkedHashSet::class.java
                 fqName == null -> Any::class.java // null if this.isTypeParameter()
                 else -> Class.forName(owner.internalName())
             }
