@@ -91,7 +91,10 @@ ALWAYS_INLINE bool isShareable(const ObjHeader* obj) {
 }
 
 extern "C" MemoryState* InitMemory(bool firstRuntime) {
-    return mm::ToMemoryState(mm::ThreadRegistry::Instance().RegisterCurrentThread());
+    auto* result = mm::ThreadRegistry::Instance().RegisterCurrentThread();
+    // This switch may block if GC stopped the world.
+    SwitchThreadState(result->Get(), ThreadState::kRunnable);
+    return mm::ToMemoryState(result);
 }
 
 extern "C" void DeinitMemory(MemoryState* state, bool destroyRuntime) {
@@ -100,6 +103,10 @@ extern "C" void DeinitMemory(MemoryState* state, bool destroyRuntime) {
         node->Get()->gc().PerformFullGC();
         // TODO: Also make sure that finalizers are run.
     }
+    // Switch to the Native state to avoid a deadlock in a situation
+    // when GC already locked the thread registery and waits for
+    // threads to suspend or go to the native state.
+    SwitchThreadState(state, ThreadState::kNative);
     mm::ThreadRegistry::Instance().Unregister(node);
 }
 
