@@ -275,6 +275,92 @@ TEST(SingleLockListTest, IterWhileConcurrentErase) {
     EXPECT_THAT(actualAfter, testing::IsEmpty());
 }
 
+TEST(SingleLockListTest, LockAndEmplace) {
+    SingleLockList<int, std::recursive_mutex> list;
+    constexpr int kThreadCount = kDefaultThreadCount;
+
+    KStdVector<std::thread> threads;
+    KStdVector<int> actualLocked;
+    KStdVector<int> actualUnlocked;
+    KStdVector<int> expectedUnlocked;
+    for (int i = 0; i < kThreadCount; i++) {
+        expectedUnlocked.push_back(i);
+    }
+    std::atomic<int> startedCount(0);
+    {
+        std::unique_lock lock = list.Lock();
+        for (int i = 0; i < kThreadCount; i++) {
+            threads.emplace_back([&startedCount, &list, i]() {
+                startedCount++;
+                list.Emplace(i);
+            });
+        }
+        while (startedCount != kThreadCount) {
+            std::this_thread::yield();
+        }
+        // Here still may be a race leading to false-successful EXPECT
+        // if the scheduler suspend all threads right before list.Emplace.
+        // But this situation looks unlikely
+        for (int element : list.Iter()) {
+            actualLocked.push_back(element);
+        }
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+    for (int element : list.Iter()) {
+        actualUnlocked.push_back(element);
+    }
+    EXPECT_THAT(actualLocked, testing::IsEmpty());
+    EXPECT_THAT(actualUnlocked, testing::UnorderedElementsAreArray(expectedUnlocked));
+}
+
+TEST(SingleLockListTest, LockAndErase) {
+    SingleLockList<int, std::recursive_mutex> list;
+    constexpr int kThreadCount = kDefaultThreadCount;
+
+    KStdVector<SingleLockList<int, std::recursive_mutex>::Node*> items;
+    KStdVector<int> expectedLocked;
+    KStdVector<std::thread> threads;
+    KStdVector<int> actualLocked;
+    KStdVector<int> actualUnlocked;
+    std::atomic<int> startedCount(0);
+
+    for (int i = 0; i < kThreadCount; i++) {
+        expectedLocked.push_back(i);
+        items.push_back(list.Emplace(i));
+    }
+    {
+        std::unique_lock lock = list.Lock();
+        for (int i = 0; i < kThreadCount; i++) {
+            threads.emplace_back([&startedCount, &list, &items, i]() {
+                startedCount++;
+                list.Erase(items[i]);
+            });
+        }
+        while (startedCount != kThreadCount) {
+            std::this_thread::yield();
+        }
+        // Here still may be a race leading to false-successful EXPECT
+        // if the scheduler suspend all threads right before list.Erase.
+        // But this situation looks unlikely
+        for (int element : list.Iter()) {
+            actualLocked.push_back(element);
+        }
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+    for (int element : list.Iter()) {
+        actualUnlocked.push_back(element);
+    }
+
+    EXPECT_THAT(actualLocked, testing::UnorderedElementsAreArray(expectedLocked));
+    EXPECT_THAT(actualUnlocked, testing::IsEmpty());
+}
+
 namespace {
 
 class PinnedType : private Pinned {

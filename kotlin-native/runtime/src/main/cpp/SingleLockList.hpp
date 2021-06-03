@@ -71,7 +71,7 @@ public:
 
     class Iterable : private MoveOnly {
     public:
-        explicit Iterable(SingleLockList* list) noexcept : list_(list), guard_(list->mutex_) {}
+        explicit Iterable(SingleLockList* list) noexcept : list_(list), guard_(list->Lock()) {}
 
         Iterator begin() noexcept { return Iterator(list_->root_.get()); }
 
@@ -142,6 +142,8 @@ public:
     // }
     // // At this point `list` is unlocked.
     Iterable Iter() noexcept { return Iterable(this); }
+
+    std::unique_lock<Mutex> Lock() noexcept { return std::unique_lock(mutex_); }
 
 private:
     // Expects `mutex_` to be held by the current thread.
