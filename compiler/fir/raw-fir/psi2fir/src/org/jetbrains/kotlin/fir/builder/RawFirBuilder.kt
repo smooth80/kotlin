@@ -2137,7 +2137,6 @@ open class RawFirBuilder(
                 ?: buildErrorExpression(sourceElement, ConeSimpleDiagnostic("Empty label", DiagnosticKind.Syntax))
             if (size != context.firLabels.size) {
                 context.firLabels.removeLast()
-                println("Unused label: ${expression.text}")
             }
             return result
         }
