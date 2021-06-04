@@ -21,8 +21,8 @@ fun test(l : java.util.List<Int>) {
 
   val f : java.io.File? = null
 
-  Collections.<!UNRESOLVED_REFERENCE!>emptyList<!>
-  Collections.<!UNRESOLVED_REFERENCE!>emptyList<!><Int>
+  Collections.<!FUNCTION_CALL_EXPECTED!>emptyList<!>
+  Collections.<!FUNCTION_CALL_EXPECTED!>emptyList<!><Int>
   Collections.emptyList<Int>()
   Collections.<!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>emptyList<!>()
 
