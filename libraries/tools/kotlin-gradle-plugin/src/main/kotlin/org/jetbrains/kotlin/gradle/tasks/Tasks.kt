@@ -11,6 +11,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
@@ -26,6 +28,7 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.toBooleanLenient
 import org.jetbrains.kotlin.compilerRunner.*
 import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner.Companion.normalizeForFlagFile
 import org.jetbrains.kotlin.daemon.common.MultiModuleICSettings
@@ -49,6 +52,7 @@ import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.library.impl.isKotlinLibrary
 import org.jetbrains.kotlin.utils.JsLibraryUtils
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 const val KOTLIN_BUILD_DIR_NAME = "kotlin"
@@ -750,19 +754,31 @@ open class Kotlin2JsCompile @Inject constructor(
             "-Xir-produce-klib-file"
         ).any(freeCompilerArgs::contains)
 
+    private val libraryCache = project.rootProject.gradle.sharedServices.registerIfAbsent("library-cache", LibraryFilterCachingService::class.java) {}
+    private val libraryCacheEnabled = project.providers.gradleProperty("library-cache-enabled").forUseAtConfigurationTime().orNull.toBooleanLenient()!!
+
     // Kotlin/JS can operate in 3 modes:
     //  1) purely pre-IR backend
     //  2) purely IR backend
     //  3) hybrid pre-IR and IR backend. Can only accept libraries with both JS and IR parts.
     private val libraryFilter: (File) -> Boolean
-        get() = if (kotlinOptions.isIrBackendEnabled()) {
-            if (kotlinOptions.isPreIrBackendDisabled()) {
-                ::isKotlinLibrary
-            } else {
-                ::isHybridKotlinJsLibrary
+        get() = { file ->
+            val compute = {
+                if (kotlinOptions.isIrBackendEnabled()) {
+                    if (kotlinOptions.isPreIrBackendDisabled()) {
+                        isKotlinLibrary(file)
+                    } else {
+                        isHybridKotlinJsLibrary(file)
+                    }
+                } else {
+                    JsLibraryUtils.isKotlinJavascriptLibrary(file)
+                }
             }
-        } else {
-            JsLibraryUtils::isKotlinJavascriptLibrary
+            if (libraryCacheEnabled) {
+                libraryCache.get().getOrCompute(file, compute)
+            } else {
+                compute()
+            }
         }
 
     @get:Internal
@@ -816,5 +832,15 @@ open class Kotlin2JsCompile @Inject constructor(
             incrementalCompilationEnvironment = icEnv
         )
         compilerRunner.runJsCompilerAsync(sourceRoots.kotlinSourceFiles, commonSourceSet.toList(), args, environment)
+    }
+}
+
+abstract class LibraryFilterCachingService : BuildService<BuildServiceParameters.None>, AutoCloseable {
+    private val cache = ConcurrentHashMap<File, Boolean>()
+
+    fun getOrCompute(key: File, compute: () -> Boolean) = cache.computeIfAbsent(key) { compute() }
+
+    override fun close() {
+        cache.clear()
     }
 }
