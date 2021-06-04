@@ -17,6 +17,13 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 interface KotlinTargetContainerWithNativeShortcuts : KotlinTargetContainerWithPresetFunctions, KotlinSourceSetContainer {
 
+    enum class MacosHosts {
+        X64, Arm64, All;
+
+        internal val containsArm64 get() = this == Arm64 || this == All
+        internal val containsX64 get() = this == X64 || this == All
+    }
+
     private data class DefaultSourceSets(val main: KotlinSourceSet, val test: KotlinSourceSet)
 
     private fun KotlinNativeTarget.defaultSourceSets(): DefaultSourceSets =
@@ -74,48 +81,144 @@ interface KotlinTargetContainerWithNativeShortcuts : KotlinTargetContainerWithPr
 
     fun ios(
         namePrefix: String = "ios",
+        supportedHosts: MacosHosts,
         configure: KotlinNativeTarget.() -> Unit = {}
     ) {
-        val targets = listOf(
+        val targets = listOfNotNull(
             iosArm64("${namePrefix}Arm64"),
-            iosX64("${namePrefix}X64"),
-            iosSimulatorArm64("${namePrefix}SimulatorArm64")
+            if (supportedHosts.containsX64) iosX64("${namePrefix}X64") else null,
+            if (supportedHosts.containsArm64) iosSimulatorArm64("${namePrefix}SimulatorArm64") else null
         )
         createIntermediateSourceSets(namePrefix, targets.defaultSourceSets(), mostCommonSourceSets())
         targets.forEach { it.configure() }
     }
 
+    fun ios(supportedHosts: MacosHosts) = ios("ios", supportedHosts) { }
+    fun ios(namePrefix: String, supportedHosts: MacosHosts) = ios(namePrefix, supportedHosts) { }
+    fun ios(namePrefix: String, supportedHosts: MacosHosts, configure: Closure<*>) =
+        ios(namePrefix, supportedHosts) { ConfigureUtil.configure(configure, this) }
+
+    fun ios(supportedHosts: MacosHosts, configure: Closure<*>) =
+        ios(supportedHosts = supportedHosts) { ConfigureUtil.configure(configure, this) }
+
+    //region Deprecated iOS shortcuts (using only x64 simulators by default)
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "ios(namePrefix, MacosHosts.X64, configure)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
+    fun ios(
+        namePrefix: String = "ios",
+        configure: KotlinNativeTarget.() -> Unit = {}
+    ) = ios(namePrefix, MacosHosts.X64, configure)
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "ios(MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun ios() = ios("ios") { }
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "ios(namePrefix, MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun ios(namePrefix: String) = ios(namePrefix) { }
-    fun ios(namePrefix: String, configure: Closure<*>) = ios(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
+    fun ios(namePrefix: String, configure: Closure<*>) =
+        ios(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
     fun ios(configure: Closure<*>) = ios { ConfigureUtil.configure(configure, this) }
+    //endregion
 
     fun tvos(
         namePrefix: String = "tvos",
+        supportedHosts: MacosHosts,
         configure: KotlinNativeTarget.() -> Unit
     ) {
-        val targets = listOf(
+        val targets = listOfNotNull(
             tvosArm64("${namePrefix}Arm64"),
-            tvosX64("${namePrefix}X64"),
-            tvosSimulatorArm64("${namePrefix}SimulatorArm64")
+            if (supportedHosts.containsX64) tvosX64("${namePrefix}X64") else null,
+            if (supportedHosts.containsArm64) tvosSimulatorArm64("${namePrefix}SimulatorArm64") else null
         )
         createIntermediateSourceSets(namePrefix, targets.defaultSourceSets(), mostCommonSourceSets())
         targets.forEach { it.configure() }
     }
 
+    fun tvos(supportedHosts: MacosHosts) = tvos("tvos", supportedHosts) { }
+    fun tvos(namePrefix: String, supportedHosts: MacosHosts) = tvos(namePrefix, supportedHosts) { }
+    fun tvos(namePrefix: String, supportedHosts: MacosHosts, configure: Closure<*>) =
+        tvos(namePrefix, supportedHosts) { ConfigureUtil.configure(configure, this) }
+
+    fun tvos(supportedHosts: MacosHosts, configure: Closure<*>) =
+        tvos(supportedHosts = supportedHosts) { ConfigureUtil.configure(configure, this) }
+
+
+    //region Deprecated tvos shortcuts (using only x64 simulators by default)
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "ios(namePrefix, MacosHosts.X64, configure)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
+    fun tvos(
+        namePrefix: String = "tvos",
+        configure: KotlinNativeTarget.() -> Unit = {}
+    ) = tvos(namePrefix, MacosHosts.X64, configure)
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "tvos(MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun tvos() = tvos("tvos") { }
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "tvos(namePrefix, MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun tvos(namePrefix: String) = tvos(namePrefix) { }
-    fun tvos(namePrefix: String, configure: Closure<*>) = tvos(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
+    fun tvos(namePrefix: String, configure: Closure<*>) =
+        tvos(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
     fun tvos(configure: Closure<*>) = tvos { ConfigureUtil.configure(configure, this) }
+    //endregion
 
     fun watchos(
         namePrefix: String = "watchos",
+        supportedHosts: MacosHosts,
         configure: KotlinNativeTarget.() -> Unit = {}
     ) {
         val device32 = watchosArm32("${namePrefix}Arm32")
         val device64 = watchosArm64("${namePrefix}Arm64")
-        val simulatorX64 = watchosX64("${namePrefix}X64")
-        val simulatorArm64 = watchosSimulatorArm64("${namePrefix}SimulatorArm64")
+        val simulatorX64 = if (supportedHosts.containsX64) watchosX64("${namePrefix}X64") else null
+        val simulatorArm64 = if (supportedHosts.containsArm64) watchosSimulatorArm64("${namePrefix}SimulatorArm64") else null
         val deviceTargets = listOf(device32, device64)
 
         val deviceSourceSets = createIntermediateSourceSets(
@@ -125,15 +228,61 @@ interface KotlinTargetContainerWithNativeShortcuts : KotlinTargetContainerWithPr
 
         createIntermediateSourceSets(
             namePrefix,
-            listOf(deviceSourceSets, simulatorX64.defaultSourceSets(), simulatorArm64.defaultSourceSets()),
+            listOfNotNull(deviceSourceSets, simulatorX64?.defaultSourceSets(), simulatorArm64?.defaultSourceSets()),
             mostCommonSourceSets()
         )
 
-        listOf(device32, device64, simulatorX64, simulatorArm64).forEach { it.configure() }
+        listOfNotNull(device32, device64, simulatorX64, simulatorArm64).forEach { it.configure() }
     }
 
+    fun watchos(supportedHosts: MacosHosts) = watchos("watchos", supportedHosts) { }
+    fun watchos(namePrefix: String, supportedHosts: MacosHosts) = watchos(namePrefix, supportedHosts) { }
+    fun watchos(namePrefix: String, supportedHosts: MacosHosts, configure: Closure<*>) =
+        watchos(namePrefix, supportedHosts) { ConfigureUtil.configure(configure, this) }
+    fun watchos(supportedHosts: MacosHosts, configure: Closure<*>) =
+        watchos(supportedHosts = supportedHosts) { ConfigureUtil.configure(configure, this) }
+
+
+    //region Deprecated watchos shortcuts (using only x64 simulators by default)
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "watchos(namePrefix, MacosHosts.X64, configure)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
+    fun watchos(
+        namePrefix: String = "watchos",
+        configure: KotlinNativeTarget.() -> Unit = {}
+    ) = watchos(namePrefix, MacosHosts.X64, configure)
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "watchos(MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun watchos() = watchos("watchos") { }
+
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Supported hosts should be specified explicitly",
+        replaceWith = ReplaceWith(
+            "watchos(namePrefix, MacosHosts.X64)",
+            "org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.IosSimulator"
+        )
+    )
     fun watchos(namePrefix: String) = watchos(namePrefix) { }
-    fun watchos(namePrefix: String, configure: Closure<*>) = watchos(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
+    fun watchos(namePrefix: String, configure: Closure<*>) =
+        watchos(namePrefix) { ConfigureUtil.configure(configure, this) }
+
+    @Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+    @Deprecated("Supported hosts should be specified explicitly")
     fun watchos(configure: Closure<*>) = watchos { ConfigureUtil.configure(configure, this) }
+    //endregion
 }
