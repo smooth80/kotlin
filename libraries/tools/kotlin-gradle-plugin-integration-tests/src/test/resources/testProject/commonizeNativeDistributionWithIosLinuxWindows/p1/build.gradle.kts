@@ -5,6 +5,7 @@ plugins {
 kotlin {
     iosX64()
     iosArm32()
+    iosSimulatorArm64()
     linuxX64()
     linuxArm64()
     mingwX64("windowsX64")
@@ -17,6 +18,7 @@ kotlin {
 
     val iosX64Main by sourceSets.getting
     val iosArm32Main by sourceSets.getting
+    val iosSimulatorArm64Main by sourceSets.getting
     val linuxX64Main by sourceSets.getting
     val linuxArm64Main by sourceSets.getting
     val windowsX64Main by sourceSets.getting
@@ -28,6 +30,8 @@ kotlin {
 
     iosX64Main.dependsOn(iosMain)
     iosArm32Main.dependsOn(iosMain)
+    iosSimulatorArm64Main.dependsOn(iosMain)
+
 
     linuxX64Main.dependsOn(linuxMain)
     linuxArm64Main.dependsOn(linuxMain)

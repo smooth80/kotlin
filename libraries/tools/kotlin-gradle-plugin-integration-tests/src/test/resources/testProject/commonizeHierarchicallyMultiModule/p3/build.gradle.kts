@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithNativeShortcuts.MacosHosts.*
 
 operator fun KotlinSourceSet.invoke(builder: SourceSetHierarchyBuilder.() -> Unit): KotlinSourceSet {
     SourceSetHierarchyBuilder(this).builder()
@@ -22,7 +23,7 @@ kotlin {
     linuxArm64()
 
     macosX64("macos")
-    ios()
+    ios(All)
 
     mingwX64("windowsX64")
     mingwX86("windowsX86")
