@@ -1,6 +1,6 @@
 FILE: incompatibleModifiers.kt
-    public final class A<out T> : R|kotlin/Any| {
-        public constructor<out T>(): R|A<T>| {
+    public final class A<in T> : R|kotlin/Any| {
+        public constructor<in T>(): R|A<T>| {
             super<R|kotlin/Any|>()
         }
 
