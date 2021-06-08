@@ -9,7 +9,6 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFactory1
 import org.jetbrains.kotlin.checkers.utils.TypeOfCall
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.diagnostics.*
@@ -120,11 +119,13 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
     ) {
         val metaInfos = if (firFile.psi != null) {
             AnalyzingUtils.getSyntaxErrorRanges(firFile.psi!!).map {
-                FirErrors.SYNTAX.on(FirRealPsiSourceElement(it)).toMetaInfo(testFile, lightTreeEnabled, lightTreeComparingModeEnabled)
+                FirErrors.SYNTAX.on(FirRealPsiSourceElement(it), positioningStrategy = null)
+                    .toMetaInfo(testFile, lightTreeEnabled, lightTreeComparingModeEnabled)
             }
         } else {
             collectLightTreeSyntaxErrors(firFile).map { sourceElement ->
-                FirErrors.SYNTAX.on(sourceElement).toMetaInfo(testFile, lightTreeEnabled, lightTreeComparingModeEnabled)
+                FirErrors.SYNTAX.on(sourceElement, positioningStrategy = null)
+                    .toMetaInfo(testFile, lightTreeEnabled, lightTreeComparingModeEnabled)
             }
         }
 
@@ -245,8 +246,20 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
         val argumentText = argument()
         val factory = FirDiagnosticFactory1<PsiElement, String>(name, severity)
         return when (positionedElement) {
-            is FirPsiSourceElement<*> -> FirPsiDiagnosticWithParameters1(positionedElement, argumentText, severity, factory)
-            is FirLightSourceElement -> FirLightDiagnosticWithParameters1(positionedElement, argumentText, severity, factory)
+            is FirPsiSourceElement<*> -> FirPsiDiagnosticWithParameters1(
+                positionedElement,
+                argumentText,
+                severity,
+                factory,
+                factory.defaultPositioningStrategy
+            )
+            is FirLightSourceElement -> FirLightDiagnosticWithParameters1(
+                positionedElement,
+                argumentText,
+                severity,
+                factory,
+                factory.defaultPositioningStrategy
+            )
         }
     }
 
