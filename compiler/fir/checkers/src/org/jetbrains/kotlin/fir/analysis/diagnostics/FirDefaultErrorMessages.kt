@@ -364,11 +364,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_SETTER_RETU
 import org.jetbrains.kotlin.resolve.VarianceConflictDiagnosticData
 
 @Suppress("unused")
-class FirDefaultErrorMessages : DefaultErrorMessages.Extension {
-    override fun getMap(): DiagnosticFactoryToRendererMap {
-        return MAP.psiDiagnosticMap
-    }
-
+class FirDefaultErrorMessages {
     companion object {
         fun getRendererForDiagnostic(diagnostic: FirDiagnostic<*>): FirDiagnosticRenderer<*> {
             val factory = diagnostic.factory
