@@ -56,8 +56,6 @@ extern "C" void Kotlin_TestSupport_AssertClearGlobalState() {
 }
 
 void kotlin::DeinitMemoryForTests(MemoryState* memoryState) {
-    // Ensure that memory deinit is performed in the runnable state.
-    SwitchThreadState(memoryState, ThreadState::kRunnable, /* reentrant = */ true);
     DeinitMemory(memoryState, false);
     mm::ThreadRegistry::TestSupport::ClearCurrentThreadData();
 }

@@ -129,6 +129,9 @@ RuntimeState* initRuntime() {
           result->worker = WorkerInit(result->memoryState, true);
   }
 
+  // Switch state to runnable because the initialization of globals contains a Kotlin code.
+  // This call may block if GC requested suspending threads.
+  kotlin::ThreadStateGuard guard(result->memoryState, kotlin::ThreadState::kRunnable);
   InitOrDeinitGlobalVariables(ALLOC_THREAD_LOCAL_GLOBALS, result->memoryState);
   CommitTLSStorage(result->memoryState);
   // Keep global variables in state as well.
@@ -142,8 +145,6 @@ RuntimeState* initRuntime() {
   InitOrDeinitGlobalVariables(INIT_THREAD_LOCAL_GLOBALS, result->memoryState);
   RuntimeAssert(result->status == RuntimeStatus::kUninitialized, "Runtime must still be in the uninitialized state");
   result->status = RuntimeStatus::kRunning;
-
-  kotlin::SwitchThreadState(result->memoryState, kotlin::ThreadState::kNative);
 
   return result;
 }

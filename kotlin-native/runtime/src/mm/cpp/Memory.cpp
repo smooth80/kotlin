@@ -91,10 +91,7 @@ ALWAYS_INLINE bool isShareable(const ObjHeader* obj) {
 }
 
 extern "C" MemoryState* InitMemory(bool firstRuntime) {
-    auto* result = mm::ThreadRegistry::Instance().RegisterCurrentThread();
-    // This switch may block if GC stopped the world.
-    SwitchThreadState(result->Get(), ThreadState::kRunnable);
-    return mm::ToMemoryState(result);
+    return mm::ToMemoryState(mm::ThreadRegistry::Instance().RegisterCurrentThread());
 }
 
 extern "C" void DeinitMemory(MemoryState* state, bool destroyRuntime) {
