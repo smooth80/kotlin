@@ -54,11 +54,7 @@ class NativeCompilerDownloader(
                 if (this.meta.ordinal != compilerVersion.meta.ordinal) return this.meta.ordinal > compilerVersion.meta.ordinal
                 return this.build >= compilerVersion.build
             }
-            return if (compilerVersion.isAtLeast(CompilerVersionImpl(major = 1, minor = 5, maintenance = 30, build = 1466))) {
-                HostManager.platformName()
-            } else {
-                HostManager.simpleOsName()
-            }
+            return HostManager.platformName()
         }
 
     private val dependencyName: String
