@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
+@OptIn(InternalDiagnosticFactoryMethod::class)
 private fun ConeDiagnostic.toFirDiagnostic(
     source: FirSourceElement,
     qualifiedAccessSource: FirSourceElement?
@@ -64,7 +65,7 @@ private fun ConeDiagnostic.toFirDiagnostic(
         FirErrors.NO_TYPE_ARGUMENTS_ON_RHS.on(qualifiedAccessSource ?: source, this.desiredCount, this.type)
     is ConeSimpleDiagnostic -> when (source.kind) {
         is FirFakeSourceElementKind -> null
-        else -> this.getFactory(source)?.on(qualifiedAccessSource ?: source)
+        else -> this.getFactory(source).on(qualifiedAccessSource ?: source)
     }
     is ConeInstanceAccessBeforeSuperCall -> FirErrors.INSTANCE_ACCESS_BEFORE_SUPER_CALL.on(source, this.target)
     is ConeStubDiagnostic -> null
@@ -88,6 +89,7 @@ fun ConeDiagnostic.toFirDiagnostics(
     }
 }
 
+@OptIn(InternalDiagnosticFactoryMethod::class)
 private fun mapUnsafeCallError(
     candidate: Candidate,
     rootCause: UnsafeCall,
@@ -137,6 +139,7 @@ private fun mapUnsafeCallError(
     }
 }
 
+@OptIn(InternalDiagnosticFactoryMethod::class)
 private fun mapInapplicableCandidateError(
     diagnostic: ConeInapplicableCandidateError,
     source: FirSourceElement,
@@ -179,7 +182,7 @@ private fun mapInapplicableCandidateError(
     }.ifEmpty { listOf(FirErrors.INAPPLICABLE_CANDIDATE.on(source, diagnostic.candidate.symbol)) }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class, InternalDiagnosticFactoryMethod::class)
 private fun mapSystemHasContradictionError(
     diagnostic: ConeConstraintSystemHasContradiction,
     source: FirSourceElement,
@@ -223,6 +226,7 @@ private fun mapSystemHasContradictionError(
     }
 }
 
+@OptIn(InternalDiagnosticFactoryMethod::class)
 private fun ConstraintSystemError.toDiagnostic(
     source: FirSourceElement,
     qualifiedAccessSource: FirSourceElement?,
@@ -306,7 +310,7 @@ private fun ConstraintSystemError.toDiagnostic(
 private val NewConstraintError.lowerConeType: ConeKotlinType get() = lowerType as ConeKotlinType
 private val NewConstraintError.upperConeType: ConeKotlinType get() = upperType as ConeKotlinType
 
-private fun ConeSimpleDiagnostic.getFactory(source: FirSourceElement): FirDiagnosticFactory0<*>? {
+private fun ConeSimpleDiagnostic.getFactory(source: FirSourceElement): FirDiagnosticFactory0<*> {
     @Suppress("UNCHECKED_CAST")
     return when (kind) {
         DiagnosticKind.Syntax -> FirErrors.SYNTAX
