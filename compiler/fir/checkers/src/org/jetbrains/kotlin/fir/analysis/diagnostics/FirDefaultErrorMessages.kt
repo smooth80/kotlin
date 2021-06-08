@@ -361,14 +361,14 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_MODIFIER_TA
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_SETTER_PARAMETER_TYPE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_SETTER_RETURN_TYPE
-import org.jetbrains.kotlin.resolve.VarianceConflictDiagnosticData
 
 @Suppress("unused")
 class FirDefaultErrorMessages {
     companion object {
-        fun getRendererForDiagnostic(diagnostic: FirDiagnostic<*>): FirDiagnosticRenderer<*> {
+        fun getRendererForDiagnostic(diagnostic: FirDiagnostic<*>): FirDiagnosticRenderer<FirDiagnostic<*>> {
             val factory = diagnostic.factory
-            return MAP[factory] ?: factory.firRenderer
+            @Suppress("UNCHECKED_CAST")
+            return (MAP[factory] ?: factory.firRenderer) as FirDiagnosticRenderer<FirDiagnostic<*>>
         }
 
         // * - The old FE reports these diagnostics with additional parameters
@@ -393,10 +393,10 @@ class FirDefaultErrorMessages {
             map.put(VARIABLE_EXPECTED, "Variable expected")
             map.put(DELEGATION_IN_INTERFACE, "Interfaces cannot use delegation")
             map.put(NESTED_CLASS_NOT_ALLOWED, "{0} is not allowed here", TO_STRING)
-            map.put(VAL_OR_VAR_ON_LOOP_PARAMETER, "''{0}'' on loop parameter is not allowed", TO_STRING);
-            map.put(VAL_OR_VAR_ON_FUN_PARAMETER, "''{0}'' on function parameter is not allowed", TO_STRING);
-            map.put(VAL_OR_VAR_ON_CATCH_PARAMETER, "''{0}'' on catch parameter is not allowed", TO_STRING);
-            map.put(VAL_OR_VAR_ON_SECONDARY_CONSTRUCTOR_PARAMETER, "''{0}'' on secondary constructor parameter is not allowed", TO_STRING);
+            map.put(VAL_OR_VAR_ON_LOOP_PARAMETER, "''{0}'' on loop parameter is not allowed", TO_STRING)
+            map.put(VAL_OR_VAR_ON_FUN_PARAMETER, "''{0}'' on function parameter is not allowed", TO_STRING)
+            map.put(VAL_OR_VAR_ON_CATCH_PARAMETER, "''{0}'' on catch parameter is not allowed", TO_STRING)
+            map.put(VAL_OR_VAR_ON_SECONDARY_CONSTRUCTOR_PARAMETER, "''{0}'' on secondary constructor parameter is not allowed", TO_STRING)
 
             // Unresolved
             map.put(INVISIBLE_REFERENCE, "Symbol {0} is invisible", SYMBOL)
