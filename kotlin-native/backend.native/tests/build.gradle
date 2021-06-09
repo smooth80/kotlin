@@ -2972,6 +2972,13 @@ standaloneTest("leakMemoryWithTestRunner") {
     }
 }
 
+standaloneTest("stress_gc_allocations") {
+    disabled = project.globalTestArgs.contains('-g') ||
+        !isExperimentalMM // No need to stress test legacy MM.
+    source = "runtime/memory/stress_gc_allocations.kt"
+    flags = ['-tr', '-opt']
+}
+
 standaloneTest("mpp1") {
     source = "codegen/mpp/mpp1.kt"
     flags = ['-tr', '-Xmulti-platform']
