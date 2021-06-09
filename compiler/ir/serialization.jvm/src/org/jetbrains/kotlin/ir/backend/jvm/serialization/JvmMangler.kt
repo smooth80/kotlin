@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
 import org.jetbrains.kotlin.load.java.lazy.descriptors.isJavaField
-import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 
 abstract class AbstractJvmManglerIr : IrBasedKotlinManglerImpl() {
 
