@@ -27,12 +27,12 @@ internal interface KtFirAnalysisSessionComponent {
 
     fun ConeKotlinType.asKtType() = analysisSession.firSymbolBuilder.typeBuilder.buildKtType(this)
 
-    fun FirPsiDiagnostic<*>.asKtDiagnostic(): KtDiagnosticWithPsi<*> =
-        KT_DIAGNOSTIC_CONVERTER.convert(analysisSession, this as FirDiagnostic<*>)
+    fun FirPsiDiagnostic.asKtDiagnostic(): KtDiagnosticWithPsi<*> =
+        KT_DIAGNOSTIC_CONVERTER.convert(analysisSession, this as FirDiagnostic)
 
     fun ConeDiagnostic.asKtDiagnostic(source: FirSourceElement, qualifiedAccessSource: FirSourceElement?): KtDiagnosticWithPsi<*>? {
         val firDiagnostic = toFirDiagnostics(source, qualifiedAccessSource).firstOrNull() ?: return null
-        check(firDiagnostic is FirPsiDiagnostic<*>)
+        check(firDiagnostic is FirPsiDiagnostic)
         return firDiagnostic.asKtDiagnostic()
     }
 

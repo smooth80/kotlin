@@ -25,12 +25,12 @@ class LowLevelFirAnalyzerFacade(
 ) : AbstractFirAnalyzerFacade() {
     override val scopeSession: ScopeSession get() = shouldNotBeCalled()
 
-    override fun runCheckers(): Map<FirFile, List<FirDiagnostic<*>>> {
+    override fun runCheckers(): Map<FirFile, List<FirDiagnostic>> {
         return allFirFiles.values.associateWith { firFile ->
             val ktFile = firFile.psi as KtFile
             val diagnostics = ktFile.collectDiagnosticsForFile(resolveState, diagnosticCheckerFilter)
             @Suppress("UNCHECKED_CAST")
-            diagnostics.toList() as List<FirDiagnostic<*>>
+            diagnostics.toList() as List<FirDiagnostic>
         }
     }
 

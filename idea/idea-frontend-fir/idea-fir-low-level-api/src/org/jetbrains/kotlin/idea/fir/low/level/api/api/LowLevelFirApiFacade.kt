@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.idea.fir.low.level.api.api
 
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirPsiDiagnostic
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirFile
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.fir.low.level.api.FirIdeResolveStateService
@@ -115,7 +117,7 @@ fun <D : FirDeclaration, R> D.withFirDeclarationInWriteLock(
  * Returns a list of Diagnostics compiler finds for given [KtElement]
  * This operation could be performance affective because it create FIleStructureElement and resolve non-local declaration into BODY phase
  */
-fun KtElement.getDiagnostics(resolveState: FirModuleResolveState, filter: DiagnosticCheckerFilter): Collection<FirPsiDiagnostic<*>> =
+fun KtElement.getDiagnostics(resolveState: FirModuleResolveState, filter: DiagnosticCheckerFilter): Collection<FirPsiDiagnostic> =
     resolveState.getDiagnostics(this, filter)
 
 /**
@@ -125,7 +127,7 @@ fun KtElement.getDiagnostics(resolveState: FirModuleResolveState, filter: Diagno
 fun KtFile.collectDiagnosticsForFile(
     resolveState: FirModuleResolveState,
     filter: DiagnosticCheckerFilter
-): Collection<FirPsiDiagnostic<*>> =
+): Collection<FirPsiDiagnostic> =
     resolveState.collectDiagnosticsForFile(this, filter)
 
 /**

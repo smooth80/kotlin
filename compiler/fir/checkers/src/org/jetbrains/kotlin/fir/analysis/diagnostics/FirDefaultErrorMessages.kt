@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.analysis.diagnostics
 
-import org.jetbrains.kotlin.diagnostics.rendering.*
+import org.jetbrains.kotlin.diagnostics.rendering.LanguageFeatureMessageRenderer
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers.RENDER_POSITION_VARIANCE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.AMBIGUOUS_CALLS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.DECLARATION_NAME
@@ -365,10 +365,10 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_SETTER_RETU
 @Suppress("unused")
 class FirDefaultErrorMessages {
     companion object {
-        fun getRendererForDiagnostic(diagnostic: FirDiagnostic<*>): FirDiagnosticRenderer<FirDiagnostic<*>> {
+        fun getRendererForDiagnostic(diagnostic: FirDiagnostic): FirDiagnosticRenderer {
             val factory = diagnostic.factory
             @Suppress("UNCHECKED_CAST")
-            return (MAP[factory] ?: factory.firRenderer) as FirDiagnosticRenderer<FirDiagnostic<*>>
+            return (MAP[factory] ?: factory.firRenderer)
         }
 
         // * - The old FE reports these diagnostics with additional parameters
@@ -604,7 +604,7 @@ class FirDefaultErrorMessages {
             map.put(
                 WRONG_NUMBER_OF_TYPE_ARGUMENTS,
                 "{0,choice,0#No type arguments|1#One type argument|1<{0,number,integer} type arguments} expected for {1}",
-                null,
+                TO_STRING,
                 SYMBOL
             )
             map.put(TYPE_PARAMETERS_IN_OBJECT, "Type parameters are not allowed for objects")
