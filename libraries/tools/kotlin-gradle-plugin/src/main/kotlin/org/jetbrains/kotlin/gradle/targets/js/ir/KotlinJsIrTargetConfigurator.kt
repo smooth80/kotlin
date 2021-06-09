@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsReportAggregatingTestRun
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
 import org.jetbrains.kotlin.gradle.testing.internal.kotlinTestRegistry
@@ -143,6 +144,8 @@ open class KotlinJsIrTargetConfigurator() :
             isCanBeConsumed = true
             attributes.attribute<Usage>(Usage.USAGE_ATTRIBUTE, KotlinUsages.producerApiUsage(target))
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
+            setupAsPublicConfigurationIfSupported(target)
+            extendsFrom(target.project.configurations.getByName(target.apiElementsConfigurationName))
         }
     }
 }
