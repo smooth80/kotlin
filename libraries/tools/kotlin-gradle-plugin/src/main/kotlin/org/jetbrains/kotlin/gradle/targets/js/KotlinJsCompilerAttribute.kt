@@ -31,7 +31,17 @@ enum class KotlinJsCompilerAttribute : Named, Serializable {
         )
 
         fun setupAttributesMatchingStrategy(attributesSchema: AttributesSchema) {
-            attributesSchema.attribute(jsCompilerAttribute)
+            attributesSchema.attribute(jsCompilerAttribute).run {
+                disambiguationRules.add(KotlinJsCompilerDisambiguation::class.java)
+            }
+        }
+    }
+}
+
+class KotlinJsCompilerDisambiguation : AttributeDisambiguationRule<KotlinJsCompilerAttribute> {
+    override fun execute(details: MultipleCandidatesDetails<KotlinJsCompilerAttribute?>) = with(details) {
+        if (candidateValues == setOf(KotlinJsCompilerAttribute.legacy, KotlinJsCompilerAttribute.ir)) {
+            closestMatch(KotlinJsCompilerAttribute.ir)
         }
     }
 }
