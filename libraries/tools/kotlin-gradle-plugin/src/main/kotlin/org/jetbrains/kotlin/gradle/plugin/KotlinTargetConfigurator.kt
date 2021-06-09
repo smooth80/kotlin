@@ -12,6 +12,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.file.FileCollection
@@ -501,8 +502,17 @@ fun Configuration.usesPlatformOf(target: KotlinTarget): Configuration {
     if (target is KotlinNativeTarget) {
         attributes.attribute(KotlinNativeTarget.konanTargetAttribute, target.konanTarget.name)
     }
+
+    if (target is KotlinMetadataTarget) {
+        attributes.attribute(fakeAttribute, "fake")
+    }
     return this
 }
+
+val fakeAttribute = Attribute.of(
+    "org.jetbrains.kotlin.fake.metadata",
+    String::class.java
+)
 
 internal val Project.commonKotlinPluginClasspath get() = configurations.getByName(PLUGIN_CLASSPATH_CONFIGURATION_NAME)
 internal val KotlinCompilation<*>.pluginConfigurationName
