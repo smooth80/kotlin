@@ -31,7 +31,7 @@ public:
     void Unregister(Node* threadDataNode) noexcept;
 
     // Locks `ThreadRegistry` for safe iteration.
-    Iterable Iter() noexcept;
+    Iterable LockForIter() noexcept;
 
     std::unique_lock<Mutex> Lock() noexcept;
 

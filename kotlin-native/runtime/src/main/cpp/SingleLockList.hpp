@@ -136,12 +136,12 @@ public:
 
     // Returned value locks `this` to perform safe iteration. `this` unlocks when
     // `Iterable` gets out of scope. Example usage:
-    // for (auto& value: list.Iter()) {
+    // for (auto& value: list.LockForIter()) {
     //    // Do something with `value`, there's a guarantee that it'll not be
     //    // destroyed mid-iteration.
     // }
     // // At this point `list` is unlocked.
-    Iterable Iter() noexcept { return Iterable(this); }
+    Iterable LockForIter() noexcept { return Iterable(this); }
 
     std::unique_lock<Mutex> Lock() noexcept { return std::unique_lock(mutex_); }
 
