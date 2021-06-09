@@ -127,7 +127,7 @@ class FirApplySupertypesTransformer(
     override fun transformAnonymousObject(anonymousObject: FirAnonymousObject, data: Any?): FirStatement {
         applyResolvedSupertypesToClass(anonymousObject)
 
-        return super.transformAnonymousObject(anonymousObject, data)
+        return anonymousObject.transformChildren(this, data) as FirAnonymousObject
     }
 
     private fun getResolvedSupertypeRefs(classLikeDeclaration: FirClassLikeDeclaration<*>): List<FirResolvedTypeRef> {
