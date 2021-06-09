@@ -6,16 +6,16 @@
 package org.jetbrains.kotlin.gradle.targets.js
 
 import org.gradle.api.Named
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.attributes.*
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import java.io.Serializable
 
 // For Gradle attributes
 @Suppress("EnumEntryName")
 enum class KotlinJsCompilerAttribute : Named, Serializable {
     legacy,
-    ir,
-    both;
+    ir;
 
     override fun getName(): String =
         name

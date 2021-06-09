@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
+import org.jetbrains.kotlin.gradle.targets.js.ir.jsCompilerAttributeToMetadataConfigurations
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
 import org.jetbrains.kotlin.gradle.tasks.locateTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
@@ -119,6 +120,21 @@ open class KotlinJsTargetConfigurator :
             isCanBeConsumed = true
             attributes.attribute<Usage>(Usage.USAGE_ATTRIBUTE, KotlinUsages.producerApiUsage(target))
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
+            attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.legacy)
+            setupAsPublicConfigurationIfSupported(target)
+            extendsFrom(target.project.configurations.getByName(target.apiElementsConfigurationName))
         }
+    }
+
+    override fun configureSourceSet(target: KotlinJsTarget) {
+        super.configureSourceSet(target)
+        jsCompilerAttributeToMetadataConfigurations(
+            target,
+            if (target.irTarget != null) {
+                KotlinJsCompilerAttribute.ir
+            } else {
+                KotlinJsCompilerAttribute.legacy
+            }
+        )
     }
 }
