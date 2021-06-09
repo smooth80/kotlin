@@ -345,7 +345,8 @@ class State {
       // so we have to use the pointer to MemoryState saved in the worker instance.
       RuntimeAssert(pthread_equal(worker->thread(), pthread_self()),
                     "Worker destruction must be executed by the worker thread.");
-      Locker locker(&lock_, worker->memoryState());
+      AssertThreadState(worker->memoryState(), ThreadState::kNative);
+      Locker locker(&lock_, /* switchThreadState = */ false);
       auto id = worker->id();
       auto it = workers_.find(id);
       if (it != workers_.end()) {

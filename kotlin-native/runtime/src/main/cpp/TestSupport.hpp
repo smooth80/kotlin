@@ -32,8 +32,8 @@ public:
     }
     ~ScopedMemoryInit() {
         ClearMemoryForTests(memoryState());
-        // Ensure that memory deinit is performed in the runnable state.
-        SwitchThreadState(memoryState(), ThreadState::kRunnable, /* reentrant = */ true);
+        // Ensure that memory deinit is performed in the native state.
+        SwitchThreadState(memoryState(), ThreadState::kNative, /* reentrant = */ true);
         DeinitMemoryForTests(memoryState());
     }
 
