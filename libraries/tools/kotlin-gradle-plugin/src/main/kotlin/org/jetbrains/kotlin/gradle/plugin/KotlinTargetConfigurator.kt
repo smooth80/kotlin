@@ -504,7 +504,7 @@ fun Configuration.usesPlatformOf(target: KotlinTarget): Configuration {
     }
 
     if (target is KotlinMetadataTarget) {
-        attributes.attribute(fakeAttribute, "fake")
+//        attributes.attribute(fakeAttribute, "fake")
     }
     return this
 }

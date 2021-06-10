@@ -84,6 +84,7 @@ internal class DefaultKotlinSourceSetFactory(
             project.configurations.maybeCreate(metadataName).apply {
                 attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
                 attributes.attribute(Usage.USAGE_ATTRIBUTE, project.usageByName(KotlinUsages.KOTLIN_API))
+                attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.import)
                 isVisible = false
                 isCanBeConsumed = false
 
