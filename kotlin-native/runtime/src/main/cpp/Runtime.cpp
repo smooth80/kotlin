@@ -155,8 +155,6 @@ RuntimeState* initRuntime() {
 }
 
 void deinitRuntime(RuntimeState* state, bool destroyRuntime) {
-  // Do not use ThreadStateGuard because memoryState will be destroyed during this function.
-  kotlin::SwitchThreadState(state->memoryState, kotlin::ThreadState::kNative);
   RuntimeAssert(state->status == RuntimeStatus::kRunning, "Runtime must be in the running state");
   state->status = RuntimeStatus::kDestroying;
   // This may be called after TLS is zeroed out, so ::runtimeState and ::memoryState in Memory cannot be trusted.
@@ -175,6 +173,9 @@ void deinitRuntime(RuntimeState* state, bool destroyRuntime) {
   ClearTLS(state->memoryState);
   if (destroyRuntime)
     InitOrDeinitGlobalVariables(DEINIT_GLOBALS, state->memoryState);
+
+  // Do not use ThreadStateGuard because memoryState will be destroyed during DeinitMemory.
+  kotlin::SwitchThreadState(state->memoryState, kotlin::ThreadState::kNative);
   auto workerId = GetWorkerId(state->worker);
   WorkerDeinit(state->worker);
   DeinitMemory(state->memoryState, destroyRuntime);
