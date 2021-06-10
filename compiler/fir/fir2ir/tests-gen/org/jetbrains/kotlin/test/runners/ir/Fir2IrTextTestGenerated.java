@@ -2705,6 +2705,18 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
         }
 
         @Test
+        @TestMetadata("samContravariantIntersectionType.kt")
+        public void testSamContravariantIntersectionType() throws Exception {
+            runTest("compiler/testData/ir/irText/types/samContravariantIntersectionType.kt");
+        }
+
+        @Test
+        @TestMetadata("samContravariantIntersectionType2.kt")
+        public void testSamContravariantIntersectionType2() throws Exception {
+            runTest("compiler/testData/ir/irText/types/samContravariantIntersectionType2.kt");
+        }
+
+        @Test
         @TestMetadata("smartCastOnFakeOverrideReceiver.kt")
         public void testSmartCastOnFakeOverrideReceiver() throws Exception {
             runTest("compiler/testData/ir/irText/types/smartCastOnFakeOverrideReceiver.kt");

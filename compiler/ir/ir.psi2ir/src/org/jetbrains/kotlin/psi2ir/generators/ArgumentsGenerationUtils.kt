@@ -30,9 +30,13 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
-import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
+import org.jetbrains.kotlin.ir.types.impl.IrTypeBase
+import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.isTrivial
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
@@ -599,6 +603,7 @@ fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: Ca
             )
 
         val irSamType = substitutedSamType.toIrType()
+            .stripTopLevelProjectionsForSamConversionTarget()
 
         fun samConvertScalarExpression(irArgument: IrExpression) =
             IrTypeOperatorCallImpl(
@@ -643,6 +648,28 @@ fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: Ca
                 }
             }
     }
+}
+
+private fun IrType.stripTopLevelProjectionsForSamConversionTarget(): IrType {
+    if (this !is IrSimpleType) return this
+    if (this.classifier !is IrClassSymbol) return this
+
+    return IrSimpleTypeImpl(
+        (this as? IrTypeBase)?.kotlinType,
+        this.classifier,
+        this.hasQuestionMark,
+        this.arguments.map { typeArgument ->
+            when (typeArgument) {
+                is IrStarProjection ->
+                    typeArgument
+                is IrTypeProjection ->
+                    makeTypeProjection(typeArgument.type, Variance.INVARIANT)
+                else ->
+                    throw AssertionError("Unexpected type argument: $typeArgument")
+            }
+        },
+        this.annotations
+    )
 }
 
 fun StatementGenerator.pregenerateValueArgumentsUsing(
