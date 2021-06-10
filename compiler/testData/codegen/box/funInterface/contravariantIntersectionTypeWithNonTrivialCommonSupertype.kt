@@ -1,8 +1,7 @@
 // IGNORE_BACKEND: WASM
 // WASM_MUTE_REASON: SAM_CONVERSIONS
 
-// CHECK_BYTECODE_TEXT
-// 0 java/lang/invoke/LambdaMetafactory
+// IGNORE_BACKEND_FIR: JVM_IR
 
 interface Top
 
@@ -34,6 +33,7 @@ fun functionReference(x: Any) {}
 class GenericHolder<T : Top> {
     fun doOnSuccess(onSuccess: Consumer<in T>) {
         onSuccess.accept(object : BaseClass() {} as T)
+        onSuccess.accept(object : BaseInterface {} as T)
     }
 }
 

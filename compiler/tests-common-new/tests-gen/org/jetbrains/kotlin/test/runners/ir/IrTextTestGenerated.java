@@ -2705,6 +2705,12 @@ public class IrTextTestGenerated extends AbstractIrTextTest {
         }
 
         @Test
+        @TestMetadata("samContravariantIntersectionType.kt")
+        public void testSamContravariantIntersectionType() throws Exception {
+            runTest("compiler/testData/ir/irText/types/samContravariantIntersectionType.kt");
+        }
+
+        @Test
         @TestMetadata("smartCastOnFakeOverrideReceiver.kt")
         public void testSmartCastOnFakeOverrideReceiver() throws Exception {
             runTest("compiler/testData/ir/irText/types/smartCastOnFakeOverrideReceiver.kt");
