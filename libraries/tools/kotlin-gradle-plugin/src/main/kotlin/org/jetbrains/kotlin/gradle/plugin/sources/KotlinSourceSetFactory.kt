@@ -12,8 +12,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.usageByName
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.Companion.jsCompilerAttribute
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
 import java.io.File
 
@@ -84,7 +82,6 @@ internal class DefaultKotlinSourceSetFactory(
             project.configurations.maybeCreate(metadataName).apply {
                 attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
                 attributes.attribute(Usage.USAGE_ATTRIBUTE, project.usageByName(KotlinUsages.KOTLIN_API))
-                attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.import)
                 isVisible = false
                 isCanBeConsumed = false
 

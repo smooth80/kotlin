@@ -148,4 +148,22 @@ open class KotlinJsIrTargetConfigurator() :
             extendsFrom(target.project.configurations.getByName(target.apiElementsConfigurationName))
         }
     }
+
+    override fun configureSourceSet(target: KotlinTarget) {
+        super.configureSourceSet(target)
+        target.compilations.all { compilation ->
+            compilation.allKotlinSourceSets.forEach { sourceSet ->
+                listOf(
+                    sourceSet.apiMetadataConfigurationName,
+                    sourceSet.implementationMetadataConfigurationName,
+                    sourceSet.compileOnlyMetadataConfigurationName,
+                    sourceSet.runtimeOnlyMetadataConfigurationName
+                ).forEach { metadataName ->
+                    target.project.configurations.maybeCreate(metadataName).apply {
+                        attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.ir)
+                    }
+                }
+            }
+        }
+    }
 }

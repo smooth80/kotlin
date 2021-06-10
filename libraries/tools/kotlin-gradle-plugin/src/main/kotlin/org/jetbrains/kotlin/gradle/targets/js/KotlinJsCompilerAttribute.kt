@@ -15,9 +15,7 @@ import java.io.Serializable
 @Suppress("EnumEntryName")
 enum class KotlinJsCompilerAttribute : Named, Serializable {
     legacy,
-    ir,
-    both,
-    import;
+    ir;
 
     override fun getName(): String =
         name
@@ -32,29 +30,7 @@ enum class KotlinJsCompilerAttribute : Named, Serializable {
         )
 
         fun setupAttributesMatchingStrategy(attributesSchema: AttributesSchema) {
-            attributesSchema.attribute(jsCompilerAttribute).run {
-                compatibilityRules.add(KotlinJsCompilerCompatibility::class.java)
-//                disambiguationRules.add(KotlinJsCompilerDisambiguation::class.java)
-            }
-        }
-    }
-}
-
-class KotlinJsCompilerCompatibility : AttributeCompatibilityRule<KotlinJsCompilerAttribute> {
-    override fun execute(details: CompatibilityCheckDetails<KotlinJsCompilerAttribute>) = with(details) {
-        if (
-            consumerValue == KotlinJsCompilerAttribute.import &&
-            (producerValue == KotlinJsCompilerAttribute.ir)
-        ) {
-            compatible()
-        }
-    }
-}
-
-class KotlinJsCompilerDisambiguation : AttributeDisambiguationRule<KotlinJsCompilerAttribute> {
-    override fun execute(details: MultipleCandidatesDetails<KotlinJsCompilerAttribute?>) = with(details) {
-        if (candidateValues == setOf(KotlinJsCompilerAttribute.legacy, KotlinJsCompilerAttribute.ir)) {
-            closestMatch(KotlinJsCompilerAttribute.ir)
+            attributesSchema.attribute(jsCompilerAttribute)
         }
     }
 }
