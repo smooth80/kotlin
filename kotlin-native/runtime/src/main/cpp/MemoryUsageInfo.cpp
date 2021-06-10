@@ -32,8 +32,15 @@ size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
 size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
     ::rusage usage;
     auto failed = ::getrusage(RUSAGE_SELF, &usage);
-    // size_t maxrss = static_cast<size_t>(usage.ru_maxrss * 1024);
+#if KONAN_LINUX
+    // On Linux it's in kilobytes.
+    size_t maxrss = static_cast<size_t>(usage.ru_maxrss * 1024);
+#elif KONAN_MACOSX
+    // On macOS it's in bytes.
     size_t maxrss = static_cast<size_t>(usage.ru_maxrss);
+#else
+#error "Check what units ru_maxrss is in."
+#endif
     if (failed) {
         return 0;
     }
