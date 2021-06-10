@@ -12,6 +12,7 @@
 
 #if KONAN_WINDOWS
 
+#include <windows.h>
 #include <psapi.h>
 
 size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
