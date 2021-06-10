@@ -101,13 +101,15 @@ RuntimeState* initRuntime() {
   ::runtimeState = result;
 
   bool firstRuntime = false;
+  // We set this guard in the `switch` below, after memory initialization.
+  kotlin::ThreadStateGuard stateGuard;
   switch (Kotlin_getDestroyRuntimeMode()) {
       case DESTROY_RUNTIME_LEGACY:
           compareAndSwap(&globalRuntimeStatus, kGlobalRuntimeUninitialized, kGlobalRuntimeRunning);
           result->memoryState = InitMemory(false); // The argument will be ignored for legacy DestroyRuntimeMode
           // Switch thread state because worker and globals inits require the runnable state.
           // This call may block if GC requested suspending threads.
-          kotlin::SwitchThreadState(result->memoryState, kotlin::ThreadState::kRunnable);
+          stateGuard = kotlin::ThreadStateGuard(result->memoryState, kotlin::ThreadState::kRunnable);
           result->worker = WorkerInit(result->memoryState, true);
           firstRuntime = atomicAdd(&aliveRuntimesCount, 1) == 1;
           if (!kotlin::kSupportsMultipleMutators && !firstRuntime) {
@@ -131,8 +133,7 @@ RuntimeState* initRuntime() {
           result->memoryState = InitMemory(firstRuntime);
           // Switch thread state because worker and globals inits require the runnable state.
           // This call may block if GC requested suspending threads.
-          // TODO: Replace with the state guard once we drop legacy mode for runtime destruction.
-          kotlin::SwitchThreadState(result->memoryState, kotlin::ThreadState::kRunnable);
+          stateGuard = kotlin::ThreadStateGuard(result->memoryState, kotlin::ThreadState::kRunnable);
           result->worker = WorkerInit(result->memoryState, true);
   }
 
@@ -149,8 +150,6 @@ RuntimeState* initRuntime() {
   InitOrDeinitGlobalVariables(INIT_THREAD_LOCAL_GLOBALS, result->memoryState);
   RuntimeAssert(result->status == RuntimeStatus::kUninitialized, "Runtime must still be in the uninitialized state");
   result->status = RuntimeStatus::kRunning;
-
-  kotlin::SwitchThreadState(result->memoryState, kotlin::ThreadState::kNative);
 
   return result;
 }
