@@ -68,8 +68,14 @@ open class PodInstallTask : DefaultTask() {
     @TaskAction
     fun doPodInstall() {
         podfile.orNull?.parentFile?.also { podfileDir ->
+            try {
+                println("TTT. which pod: ${runCommand(listOf("which", "pod"), logger)}")
+            } catch (_ : IllegalStateException) {}
             val podInstallProcess = ProcessBuilder("pod", "install").apply {
                 directory(podfileDir)
+                logger.info("TTT. Run command: ${command().joinToString(separator = " ")}")
+                logger.info("In directory: ${directory()?.absolutePath} (exists: ${directory()?.exists()})")
+                logger.info("With PATH: ${System.getenv("PATH")}")
             }.start()
             val podInstallRetCode = podInstallProcess.waitFor()
             val podInstallOutput = podInstallProcess.inputStream.use { it.reader().readText() }
@@ -310,6 +316,9 @@ private fun runCommand(
     val process = ProcessBuilder(command)
         .apply {
             this.processConfiguration()
+            logger.info("TTT. Run command: ${command.joinToString(separator = " ")}")
+            logger.info("In directory: ${directory()?.absolutePath} (exists: ${directory()?.exists()})")
+            logger.info("With PATH: ${System.getenv("PATH")}")
         }.start()
 
     var inputText = ""
@@ -421,7 +430,9 @@ open class PodGenTask : DefaultTask() {
                         |}
                     """.trimMargin()
         }
-
+        try {
+            println("TTT. which pod: ${runCommand(listOf("which", "pod"), logger)}")
+        } catch (_ : IllegalStateException) {}
         runCommand(podGenProcessArgs, project.logger, podGenDiagnostic) { directory(syntheticDir) }
 
         val podsXcprojFile = podsXcodeProjDir.get()

@@ -1383,11 +1383,14 @@ class CocoaPodsIT : BaseGradleIT() {
         @BeforeClass
         @JvmStatic
         fun installPodGen() {
+            println("ZZZ. Before. Installation required: $cocoapodsInstallationRequired. Installation allowed: $cocoapodsInstallationAllowed")
             if (cocoapodsInstallationRequired) {
                 if (cocoapodsInstallationAllowed) {
                     WorkaroundForXcode12_3.apply()
-                    gem("install", "--user-install", "cocoapods", "cocoapods-generate")
+                    val output = gem("install", "--user-install", "cocoapods", "cocoapods-generate")
                     cocoapodsInstallationPath = File(getGemUserInstallationPath()).resolve("bin")
+                    println("ZZZ. CocoaPods installed to $cocoapodsInstallationPath")
+                    println("Installation output:\n$output")
                 } else {
                     fail(
                         """
@@ -1404,13 +1407,15 @@ class CocoaPodsIT : BaseGradleIT() {
         @AfterClass
         @JvmStatic
         fun uninstallPodGen() {
+            println("ZZZ. After. Installation required: $cocoapodsInstallationRequired. Installation allowed: $cocoapodsInstallationAllowed")
             // Do not remove CocoaPods if we didn't install it.
             if (cocoapodsInstallationRequired && cocoapodsInstallationAllowed) {
                 val packagesToRemove = gem("list", "--no-versions").lineSequence().filter {
                     it.startsWith("cocoapods")
                 }.toList()
                 try {
-                    gem("uninstall", "--user-install", "-x", *packagesToRemove.toTypedArray())
+                    val output = gem("uninstall", "--user-install", "-x", *packagesToRemove.toTypedArray())
+                    println("ZZZ. Cocoapods uninstalled. Output:\n${output}")
                 } finally {
                     WorkaroundForXcode12_3.dispose()
                 }
@@ -1441,6 +1446,7 @@ class CocoaPodsIT : BaseGradleIT() {
         }
 
         private fun gem(vararg args: String): String {
+            println("ZZZ. Run: gem ${args.joinToString(separator = " ")}")
             val process = ProcessBuilder("gem", *args).start()
             val finished = process.waitFor(30, TimeUnit.MINUTES)
             val output = process.inputStream.use { it.reader().readText() }
