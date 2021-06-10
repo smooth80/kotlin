@@ -293,6 +293,11 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             }
             +booleanField("isLambda")
             +typeParameters
+            +field(typeRef, withReplace = true)
+        }
+
+        anonymousFunctionExpression.configure {
+            +field(anonymousFunction).withTransform()
         }
 
         typeParameter.configure {

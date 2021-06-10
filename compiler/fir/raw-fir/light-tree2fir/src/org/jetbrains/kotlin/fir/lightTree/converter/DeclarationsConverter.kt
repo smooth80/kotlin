@@ -95,7 +95,7 @@ class DeclarationsConverter(
                 PACKAGE_DIRECTIVE -> context.packageFqName = convertPackageName(it)
                 IMPORT_LIST -> importList += convertImportDirectives(it)
                 CLASS -> firDeclarationList += convertClass(it)
-                FUN -> firDeclarationList += convertFunctionDeclaration(it)
+                FUN -> firDeclarationList += convertFunctionDeclaration(it) as FirDeclaration
                 PROPERTY -> firDeclarationList += convertPropertyDeclaration(it)
                 TYPEALIAS -> firDeclarationList += convertTypeAlias(it)
                 OBJECT_DECLARATION -> firDeclarationList += convertClass(it)
@@ -125,7 +125,7 @@ class DeclarationsConverter(
         val firStatements = block.forEachChildrenReturnList<FirStatement> { node, container ->
             when (node.tokenType) {
                 CLASS, OBJECT_DECLARATION -> container += convertClass(node) as FirStatement
-                FUN -> container += convertFunctionDeclaration(node) as FirStatement
+                FUN -> container += convertFunctionDeclaration(node)
                 PROPERTY -> container += convertPropertyDeclaration(node) as FirStatement
                 DESTRUCTURING_DECLARATION -> container += convertDestructingDeclaration(node).toFirDestructingDeclaration(baseModuleData)
                 TYPEALIAS -> container += convertTypeAlias(node) as FirStatement
@@ -734,7 +734,7 @@ class DeclarationsConverter(
             when (node.tokenType) {
                 ENUM_ENTRY -> container += convertEnumEntry(node, classWrapper)
                 CLASS -> container += convertClass(node)
-                FUN -> container += convertFunctionDeclaration(node, classWrapper)
+                FUN -> container += convertFunctionDeclaration(node, classWrapper) as FirDeclaration
                 PROPERTY -> container += convertPropertyDeclaration(node, classWrapper)
                 TYPEALIAS -> container += convertTypeAlias(node)
                 OBJECT_DECLARATION -> container += convertClass(node)
@@ -1342,7 +1342,7 @@ class DeclarationsConverter(
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseFunction
      */
-    fun convertFunctionDeclaration(functionDeclaration: LighterASTNode, classWrapper: ClassWrapper? = null): FirDeclaration {
+    fun convertFunctionDeclaration(functionDeclaration: LighterASTNode, classWrapper: ClassWrapper? = null): FirStatement {
         var modifiers = Modifier()
         var identifier: String? = null
         val firTypeParameters = mutableListOf<FirTypeParameter>()
@@ -1382,11 +1382,12 @@ class DeclarationsConverter(
         val parentNode = functionDeclaration.getParent()
         val isLocal = !(parentNode?.tokenType == KT_FILE || parentNode?.tokenType == CLASS_BODY)
         val target: FirFunctionTarget
+        val functionSource = functionDeclaration.toFirSourceElement()
         val functionBuilder = if (identifier == null && isLocal) {
             val labelName = functionDeclaration.getLabelName() ?: context.calleeNamesForLambda.lastOrNull()?.identifier
             target = FirFunctionTarget(labelName = labelName, isLambda = false)
             FirAnonymousFunctionBuilder().apply {
-                source = functionDeclaration.toFirSourceElement()
+                source = functionSource
                 receiverTypeRef = receiverType
                 symbol = FirAnonymousFunctionSymbol()
                 isLambda = false
@@ -1396,7 +1397,7 @@ class DeclarationsConverter(
             val labelName = runIf(!functionName.isSpecial) { functionName.identifier }
             target = FirFunctionTarget(labelName, isLambda = false)
             FirSimpleFunctionBuilder().apply {
-                source = functionDeclaration.toFirSourceElement()
+                source = functionSource
                 receiverTypeRef = receiverType
                 name = functionName
                 status = FirDeclarationStatusImpl(
@@ -1419,7 +1420,7 @@ class DeclarationsConverter(
             }
         }
 
-        return functionBuilder.apply {
+        val function = functionBuilder.apply {
             moduleData = baseModuleData
             origin = FirDeclarationOrigin.Source
             returnTypeRef = returnType!!
@@ -1451,6 +1452,14 @@ class DeclarationsConverter(
             if (it is FirSimpleFunction) {
                 fillDanglingConstraintsTo(firTypeParameters, typeConstraints, it)
             }
+        }
+        return if (function is FirAnonymousFunction) {
+            buildAnonymousFunctionExpression {
+                source = functionSource
+                anonymousFunction = function
+            }
+        } else {
+            function
         }
     }
 
