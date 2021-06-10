@@ -1,6 +1,11 @@
+/*
+ * Copyright 2010-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the LICENSE file.
+ */
 import kotlin.test.*
 
 import kotlin.native.concurrent.*
+import kotlin.native.internal.MemoryUsageInfo
 
 object Blackhole {
     private val hole = AtomicLong(0)
@@ -35,6 +40,7 @@ fun test() {
     val value: Byte = 42
     // Try to make sure each page is written
     val stride = 4096
+    val rssLimit: Long = 2_000_000_000
 
     if (Platform.memoryModel == MemoryModel.EXPERIMENTAL) {
         // Allow to retain ~1GiB
@@ -47,6 +53,10 @@ fun test() {
     for (i in 0..count) {
         if (i % 100 == 0) {
             println("Allocating iteration ${i + 1} of $count")
+        }
+        val currentPeakRss = MemoryUsageInfo.peakResidentSetSizeBytes
+        if (currentPeakRss > rssLimit) {
+            fail("Current RSS $currentPeakRss is more than the limit $rssLimit")
         }
         MemoryHog(size, value, stride)
     }
