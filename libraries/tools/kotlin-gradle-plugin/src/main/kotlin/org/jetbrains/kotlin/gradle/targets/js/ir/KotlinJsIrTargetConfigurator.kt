@@ -144,7 +144,6 @@ open class KotlinJsIrTargetConfigurator() :
             attributes.attribute<Usage>(Usage.USAGE_ATTRIBUTE, KotlinUsages.producerApiUsage(target))
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
             setupAsPublicConfigurationIfSupported(target)
-            extendsFrom(target.project.configurations.getByName(target.apiElementsConfigurationName))
         }
     }
 }

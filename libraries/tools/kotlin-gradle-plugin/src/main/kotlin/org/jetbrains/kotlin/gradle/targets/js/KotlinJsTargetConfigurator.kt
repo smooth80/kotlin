@@ -119,9 +119,7 @@ open class KotlinJsTargetConfigurator :
             isCanBeConsumed = true
             attributes.attribute<Usage>(Usage.USAGE_ATTRIBUTE, KotlinUsages.producerApiUsage(target))
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
-            attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.legacy)
             setupAsPublicConfigurationIfSupported(target)
-            extendsFrom(target.project.configurations.getByName(target.apiElementsConfigurationName))
         }
     }
 }
