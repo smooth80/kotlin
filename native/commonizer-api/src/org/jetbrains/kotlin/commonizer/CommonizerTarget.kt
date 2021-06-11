@@ -25,16 +25,10 @@ public data class LeafCommonizerTarget public constructor(val name: String) : Co
     public val konanTarget: KonanTarget get() = konanTargetOrNull ?: error("Unknown KonanTarget: $name")
 }
 
-public data class SharedCommonizerTarget(val targets: Set<CommonizerTarget>) : CommonizerTarget() {
-    public constructor(vararg targets: CommonizerTarget) : this(targets.toSet())
+public data class SharedCommonizerTarget(val targets: Set<LeafCommonizerTarget>) : CommonizerTarget() {
+    public constructor(vararg targets: LeafCommonizerTarget) : this(targets.toSet())
     public constructor(vararg targets: KonanTarget) : this(targets.toSet())
     public constructor(targets: Iterable<KonanTarget>) : this(targets.map(::LeafCommonizerTarget).toSet())
-
-    public companion object {
-        public fun ifNotEmpty(targets: Set<CommonizerTarget>): SharedCommonizerTarget? {
-            return if (targets.isNotEmpty()) SharedCommonizerTarget(targets) else null
-        }
-    }
 }
 
 public fun CommonizerTarget(konanTargets: Iterable<KonanTarget>): CommonizerTarget {
@@ -56,8 +50,11 @@ public fun CommonizerTarget(konanTarget: KonanTarget, vararg konanTargets: Konan
     return SharedCommonizerTarget(targets.map(::LeafCommonizerTarget).toSet())
 }
 
-public fun CommonizerTarget(commonizerTarget: CommonizerTarget, vararg commonizerTargets: CommonizerTarget): SharedCommonizerTarget {
-    val targets = mutableListOf<CommonizerTarget>().apply {
+public fun CommonizerTarget(
+    commonizerTarget: LeafCommonizerTarget,
+    vararg commonizerTargets: LeafCommonizerTarget
+): SharedCommonizerTarget {
+    val targets = mutableListOf<LeafCommonizerTarget>().apply {
         add(commonizerTarget)
         addAll(commonizerTargets)
     }
@@ -87,10 +84,7 @@ public val CommonizerTarget.prettyName: String
 public fun SharedCommonizerTarget.prettyName(highlightedChild: CommonizerTarget?): String {
     return targets
         .sortedWith(compareBy<CommonizerTarget> { it.level }.thenBy { it.identityString }).joinToString(", ", "[", "]") { child ->
-            when (child) {
-                is LeafCommonizerTarget -> child.name
-                is SharedCommonizerTarget -> child.prettyName(highlightedChild)
-            } + if (child == highlightedChild) "(*)" else ""
+            child.name + if (child == highlightedChild) "(*)" else ""
         }
 }
 
@@ -101,6 +95,8 @@ public val CommonizerTarget.konanTargets: Set<KonanTarget>
             is SharedCommonizerTarget -> targets.flatMap { it.konanTargets }.toSet()
         }
     }
+
+public val Iterable<CommonizerTarget>.konanTargets: Set<KonanTarget> get() = flatMapTo(mutableSetOf()) { it.konanTargets }
 
 public val CommonizerTarget.level: Int
     get() {
@@ -121,6 +117,11 @@ public fun CommonizerTarget.withAllAncestors(): Set<CommonizerTarget> {
 
 public fun CommonizerTarget.allLeaves(): Set<LeafCommonizerTarget> {
     return withAllAncestors().filterIsInstance<LeafCommonizerTarget>().toSet()
+}
+
+// TODO NOW: Sloppy
+public fun Iterable<CommonizerTarget>.allLeaves(): Set<LeafCommonizerTarget> {
+    return flatMap { it.allLeaves() }.toSet()
 }
 
 public infix fun CommonizerTarget.isAncestorOf(other: CommonizerTarget): Boolean {

@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.commonizer.stats.StatsCollector
 import org.jetbrains.kotlin.commonizer.utils.ProgressLogger
 
 data class CommonizerParameters(
-    val outputTarget: SharedCommonizerTarget,
+    val outputTargets: Set<SharedCommonizerTarget>,
     val manifestProvider: TargetDependent<NativeManifestDataProvider>,
     val dependenciesProvider: TargetDependent<ModulesProvider?>,
     val targetProviders: TargetDependent<TargetProvider?>,
@@ -22,14 +22,8 @@ data class CommonizerParameters(
 )
 
 internal fun CommonizerParameters.dependencyClassifiers(target: CommonizerTarget): CirProvidedClassifiers {
-    val modules = outputTarget.withAllAncestors()
-        .sortedBy { it.level }
-        .filter { it == target || it isAncestorOf target }
-        .mapNotNull { compatibleTarget -> dependenciesProvider[compatibleTarget] }
-
-    return modules.fold<ModulesProvider, CirProvidedClassifiers>(CirFictitiousFunctionClassifiers) { classifiers, module ->
-        CirProvidedClassifiers.of(classifiers, CirProvidedClassifiers.by(module))
-    }
+    val modulesProvider = dependenciesProvider[target]
+    return CirProvidedClassifiers.of(CirFictitiousFunctionClassifiers, CirProvidedClassifiers.by(modulesProvider))
 }
 
 internal fun CommonizerParameters.with(logger: ProgressLogger?) = copy(logger = logger)

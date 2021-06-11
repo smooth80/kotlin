@@ -7,13 +7,11 @@ package org.jetbrains.kotlin.commonizer
 
 import kotlinx.metadata.klib.ChunkedKlibModuleFragmentWriteStrategy
 import org.jetbrains.kotlin.commonizer.ResultsConsumer.ModuleResult
-import org.jetbrains.kotlin.commonizer.ResultsConsumer.ModuleResult.Missing
 import org.jetbrains.kotlin.commonizer.ResultsConsumer.Status
 import org.jetbrains.kotlin.commonizer.core.CommonizationVisitor
 import org.jetbrains.kotlin.commonizer.mergedtree.CirCommonizedClassifierNodes
 import org.jetbrains.kotlin.commonizer.mergedtree.CirKnownClassifiers
 import org.jetbrains.kotlin.commonizer.mergedtree.CirNode.Companion.indexOfCommon
-import org.jetbrains.kotlin.commonizer.mergedtree.CirNode.Companion.targetIndices
 import org.jetbrains.kotlin.commonizer.mergedtree.CirRootNode
 import org.jetbrains.kotlin.commonizer.metadata.CirTreeSerializer.serializeSingleTarget
 import org.jetbrains.kotlin.commonizer.transformer.Checked.Companion.invoke
@@ -22,8 +20,8 @@ import org.jetbrains.kotlin.commonizer.tree.CirTreeRoot
 import org.jetbrains.kotlin.commonizer.tree.assembleCirTree
 import org.jetbrains.kotlin.commonizer.tree.deserializeCirTree
 import org.jetbrains.kotlin.commonizer.tree.mergeCirTree
+import org.jetbrains.kotlin.commonizer.utils.CommonizerQueue
 import org.jetbrains.kotlin.library.SerializedMetadata
-import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 
 fun runCommonization(parameters: CommonizerParameters) {
@@ -32,12 +30,13 @@ fun runCommonization(parameters: CommonizerParameters) {
         return
     }
 
-    val storageManager = LockBasedStorageManager("Declarations commonization")
-    commonize(parameters, storageManager, parameters.outputTarget)
+    CommonizerQueue.runSmarter(parameters)
+    //val storageManager = LockBasedStorageManager("Declarations commonization")
+    //commonize(parameters, storageManager, parameters.outputTarget)
     parameters.resultsConsumer.allConsumed(parameters, Status.DONE)
 }
 
-private fun commonize(
+internal fun commonize(
     parameters: CommonizerParameters,
     storageManager: StorageManager,
     target: SharedCommonizerTarget,
@@ -74,12 +73,12 @@ private fun getCirTree(
     }
 }
 
-private fun deserialize(parameters: CommonizerParameters, target: CommonizerTarget): CirTreeRoot? {
+internal fun deserialize(parameters: CommonizerParameters, target: CommonizerTarget): CirTreeRoot? {
     val targetProvider = parameters.targetProviders[target] ?: return null
     return deserializeCirTree(parameters, targetProvider)
 }
 
-private fun merge(
+internal fun merge(
     storageManager: StorageManager, classifiers: CirKnownClassifiers, cirTrees: TargetDependent<CirTreeRoot?>,
 ): CirRootNode? {
     val availableTrees = cirTrees.filterNonNull()
@@ -89,14 +88,7 @@ private fun merge(
     return mergeCirTree(storageManager, classifiers, availableTrees)
 }
 
-private fun serialize(parameters: CommonizerParameters, mergedTree: CirRootNode, commonTarget: CommonizerTarget) {
-    for (targetIndex in mergedTree.targetIndices) {
-        val target = mergedTree.targetDeclarations[targetIndex]?.target ?: continue
-        serializeMissingModules(parameters, target)
-        if (target is LeafCommonizerTarget) {
-            serialize(parameters, mergedTree, target, targetIndex)
-        }
-    }
+internal fun serialize(parameters: CommonizerParameters, mergedTree: CirRootNode, commonTarget: CommonizerTarget) {
     serialize(parameters, mergedTree, commonTarget, mergedTree.indexOfCommon)
 }
 
@@ -112,20 +104,10 @@ private fun serialize(parameters: CommonizerParameters, mergedTree: CirRootNode,
     parameters.resultsConsumer.targetConsumed(parameters, target)
 }
 
-private fun serializeMissingModules(parameters: CommonizerParameters, requestedTarget: CommonizerTarget) {
-    val targetProvider = parameters.targetProviders.getOrNull(requestedTarget) ?: return
-    val commonModuleNames = parameters.commonModuleNames(targetProvider)
-
-    targetProvider.modulesProvider.loadModuleInfos()
-        .filter { it.name !in commonModuleNames }
-        .forEach { missingModule ->
-            parameters.resultsConsumer.consume(parameters, requestedTarget, Missing(missingModule.originalLocation))
-        }
-}
 
 private fun CommonizerParameters.fork(): CommonizerParameters = with(logger?.fork())
 
-private fun CommonizerParameters.logProgress(message: String) = logger?.progress(message)
+internal fun CommonizerParameters.logProgress(message: String) = logger?.progress(message)
 
 private val KLIB_FRAGMENT_WRITE_STRATEGY = ChunkedKlibModuleFragmentWriteStrategy()
 

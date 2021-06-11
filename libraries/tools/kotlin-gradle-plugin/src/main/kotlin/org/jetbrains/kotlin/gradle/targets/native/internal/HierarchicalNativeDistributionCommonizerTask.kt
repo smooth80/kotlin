@@ -8,10 +8,9 @@ package org.jetbrains.kotlin.gradle.targets.native.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.*
-import org.jetbrains.kotlin.commonizer.HierarchicalCommonizerOutputLayout.fileName
 import org.jetbrains.kotlin.commonizer.SharedCommonizerTarget
-import org.jetbrains.kotlin.commonizer.identityString
 import org.jetbrains.kotlin.commonizer.isAncestorOf
+import org.jetbrains.kotlin.compilerRunner.GradleCliCommonizer
 import org.jetbrains.kotlin.compilerRunner.KotlinNativeCommonizerToolRunner
 import org.jetbrains.kotlin.compilerRunner.konanHome
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
@@ -29,7 +28,7 @@ internal open class HierarchicalNativeDistributionCommonizerTask : DefaultTask()
 
     @get:Input
     internal val rootCommonizerTargets: Set<SharedCommonizerTarget>
-        get() = project.getRootCommonizerTargets()
+        get() = project.getCommonizerTargets()
 
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputDirectory
@@ -47,8 +46,9 @@ internal open class HierarchicalNativeDistributionCommonizerTask : DefaultTask()
 
     @get:OutputDirectories
     @Suppress("unused") // Only for up-to-date checker. The directory with the original platform libs.
+    // TODO NOW
     val outputDirectories: Set<File>
-        get() = rootCommonizerTargets.map(::getRootOutputDirectory).toSet()
+        get() = setOf(getRootOutputDirectory())
 
     /*
     Ensures that only one CommonizerTask can run at a time.
@@ -74,45 +74,38 @@ internal open class HierarchicalNativeDistributionCommonizerTask : DefaultTask()
     internal val commonizerJvmArgs: List<String>
         get() = commonizerRunner.getCustomJvmArgs()
 
-    internal fun getRootOutputDirectory(target: SharedCommonizerTarget): File {
+    @Internal
+    internal fun getRootOutputDirectory(): File {
         val kotlinVersion = project.getKotlinPluginVersion()
 
         return project.file(konanHome)
             .resolve(KONAN_DISTRIBUTION_KLIB_DIR)
             .resolve(KONAN_DISTRIBUTION_COMMONIZED_LIBS_DIR)
             .resolve(urlEncode(kotlinVersion))
-            .resolve(target.fileName)
     }
 
     @TaskAction
     protected fun run() {
         for (target in rootCommonizerTargets) {
-            NativeDistributionCommonizationCache(commonizerRunner, getRootOutputDirectory(target))
-                .runIfNecessary(getCommandLineArguments(target))
+            getRootOutputDirectory().deleteRecursively() // TODO NOW CACHING!
+            GradleCliCommonizer(project).commonizeNativeDistribution(
+                konanHome = konanHome,
+                outputDirectory = getRootOutputDirectory(),
+                outputTargets = project.allprojects.flatMapTo(mutableSetOf()) { project -> project.getCommonizerTargets() },
+                logLevel = project.commonizerLogLevel
+            )
         }
     }
 
-    private fun getCommandLineArguments(target: SharedCommonizerTarget): List<String> {
-        return mutableListOf<String>().apply {
-            this += "native-dist-commonize"
-            this += "-distribution-path"
-            this += konanHome.absolutePath
-            this += "-output-path"
-            this += getRootOutputDirectory(target).absolutePath
-            this += "-output-commonizer-target"
-            this += target.identityString
-            this += "-log-level"
-            this += project.commonizerLogLevel.name
-        }
-    }
 }
 
-private fun Project.getRootCommonizerTargets(): Set<SharedCommonizerTarget> {
+private fun Project.getCommonizerTargets(): Set<SharedCommonizerTarget> {
     val kotlin = multiplatformExtensionOrNull ?: return emptySet()
     val allTargets = kotlin.sourceSets
         .mapNotNull { sourceSet -> getCommonizerTarget(sourceSet) }
         .filterIsInstance<SharedCommonizerTarget>()
     return allTargets.filter { target -> allTargets.none { otherTarget -> otherTarget isAncestorOf target } }.toSet()
 }
+
 
 private fun urlEncode(value: String): String = URLEncoder.encode(value, Charsets.UTF_8.name())

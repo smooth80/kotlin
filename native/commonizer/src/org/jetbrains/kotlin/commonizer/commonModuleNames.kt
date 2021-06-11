@@ -23,7 +23,7 @@ internal fun CommonizerParameters.commonModuleNames(target: CommonizerTarget): S
  * @return Set of module names that this [targetProvider] shares with *at least* one other target
  */
 internal fun CommonizerParameters.commonModuleNames(targetProvider: TargetProvider): Set<String> {
-    return outputTarget.withAllAncestors()
+    return outputTargets
         .filter { target -> target isAncestorOf targetProvider.target }
         .map { target -> commonModuleNames(target) }
         .fold(emptySet()) { acc, names -> acc + names }

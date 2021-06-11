@@ -8,14 +8,14 @@ package org.jetbrains.kotlin.commonizer.cli
 import org.jetbrains.kotlin.commonizer.SharedCommonizerTarget
 import org.jetbrains.kotlin.commonizer.parseCommonizerTarget
 
-internal object OutputCommonizerTargetOptionType : OptionType<SharedCommonizerTarget>(
-    alias = "output-commonizer-target",
-    description = "Shared commonizer target representing the commonized output hierarchy",
-    mandatory = false
+internal object OutputCommonizerTargetsOptionType : OptionType<Set<SharedCommonizerTarget>>(
+    alias = "output-targets",
+    description = "Shared commonizer target representing the commonized output hierarchy", // TODO NOW
+    mandatory = true
 ) {
-    override fun parse(rawValue: String, onError: (reason: String) -> Nothing): Option<SharedCommonizerTarget> {
+    override fun parse(rawValue: String, onError: (reason: String) -> Nothing): Option<Set<SharedCommonizerTarget>> {
         return try {
-            Option(this, parseCommonizerTarget(rawValue) as SharedCommonizerTarget)
+            return Option(this, rawValue.split(";").map(::parseCommonizerTarget).map { it as SharedCommonizerTarget }.toSet())
         } catch (t: Throwable) {
             onError("Failed parsing output-commonizer-target ($rawValue): ${t.message}")
         }

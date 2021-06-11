@@ -193,7 +193,7 @@ private fun buildCommonizerTarget(node: IdentityStringSyntaxNode): CommonizerTar
     return when (node) {
         is LeafTargetSyntaxNode -> LeafCommonizerTarget(node.token.value)
         is SharedTargetSyntaxNode -> SharedCommonizerTarget(
-            node.children.map { child -> buildCommonizerTarget(child) }.toSet()
+            node.children.mapNotNull { child -> buildCommonizerTarget(child) as? LeafCommonizerTarget }.toSet()
         )
     }
 }

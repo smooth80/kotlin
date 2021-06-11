@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.commonizer.*
 import org.jetbrains.kotlin.commonizer.repository.Repository
 import java.io.File
 
+// TODO NOW: Remove
 internal class CopyUnconsumedModulesAsIsConsumer(
     private val repository: Repository,
     private val destination: File,

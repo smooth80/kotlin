@@ -7,10 +7,8 @@ package org.jetbrains.kotlin.commonizer.konan
 
 import org.jetbrains.kotlin.commonizer.*
 
-internal class LoggingResultsConsumer(
-    private val outputCommonizerTarget: SharedCommonizerTarget
-) : ResultsConsumer {
+internal object LoggingResultsConsumer: ResultsConsumer {
     override fun targetConsumed(parameters: CommonizerParameters, target: CommonizerTarget) {
-        parameters.logger?.progress("Written libraries for ${outputCommonizerTarget.prettyName(target)}")
+        parameters.logger?.progress("Written libraries for $target")
     }
 }
