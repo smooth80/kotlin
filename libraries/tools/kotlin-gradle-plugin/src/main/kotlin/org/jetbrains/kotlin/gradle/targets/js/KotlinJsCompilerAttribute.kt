@@ -15,7 +15,10 @@ import java.io.Serializable
 @Suppress("EnumEntryName")
 enum class KotlinJsCompilerAttribute : Named, Serializable {
     legacy,
-    ir;
+    ir,
+
+    @Deprecated("This value is not used in Gradle plugin. You don't need to use it. It will be removed in next major.")
+    both;
 
     override fun getName(): String =
         name

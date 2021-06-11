@@ -160,15 +160,17 @@ internal fun jsCompilerAttributeToMetadataConfigurations(
     attributeValue: KotlinJsCompilerAttribute
 ) {
     target.compilations.all { compilation ->
-        compilation.allKotlinSourceSets.forEach { sourceSet ->
-            listOf(
-                sourceSet.apiMetadataConfigurationName,
-                sourceSet.implementationMetadataConfigurationName,
-                sourceSet.compileOnlyMetadataConfigurationName,
-                sourceSet.runtimeOnlyMetadataConfigurationName
-            ).forEach { metadataName ->
-                target.project.configurations.maybeCreate(metadataName).apply {
-                    attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, attributeValue)
+        target.project.whenEvaluated {
+            compilation.allKotlinSourceSets.forEach { sourceSet ->
+                listOf(
+                    sourceSet.apiMetadataConfigurationName,
+                    sourceSet.implementationMetadataConfigurationName,
+                    sourceSet.compileOnlyMetadataConfigurationName,
+                    sourceSet.runtimeOnlyMetadataConfigurationName
+                ).forEach { metadataName ->
+                    target.project.configurations.maybeCreate(metadataName).apply {
+                        attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, attributeValue)
+                    }
                 }
             }
         }
