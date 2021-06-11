@@ -20582,7 +20582,7 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
 
                 @Test
                 @TestMetadata("kt13355viaJava.kt")
-                public void testKt13355viaJava1111() throws Exception {
+                public void testKt13355viaJava() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/override/clashesOnInheritance/kt13355viaJava.kt");
                 }
 
