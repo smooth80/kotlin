@@ -11,10 +11,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Usage
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.targets
-import org.jetbrains.kotlin.gradle.plugin.usageByName
-import org.jetbrains.kotlin.gradle.plugin.whenEvaluated
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
@@ -144,15 +143,18 @@ internal class DefaultKotlinSourceSetFactory(
         }
 
         project.kotlinExtension.targets
+            .filter { it is KotlinJsTarget || it is KotlinJsIrTarget }
             .forEach { target ->
-                target.compilations.forEach { compilation ->
-                    if (sourceSet in compilation.allKotlinSourceSets) {
-                        val compilerAttribute = chooseCompilerAttribute(target)
-                        jsOnlySourceSetsAttributes[sourceSet] = compilerAttribute
-                        configuration.attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, compilerAttribute)
-                        return
+                target.compilations
+                    .filterIsInstance<KotlinJsCompilation>()
+                    .forEach { compilation ->
+                        if (sourceSet in compilation.allKotlinSourceSets) {
+                            val compilerAttribute = chooseCompilerAttribute(target)
+                            jsOnlySourceSetsAttributes[sourceSet] = compilerAttribute
+                            configuration.attributes.attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, compilerAttribute)
+                            return
+                        }
                     }
-                }
             }
     }
 
