@@ -4,6 +4,7 @@
  */
 package kotlin.native.internal
 
+@InternalForKotlinNative
 object MemoryUsageInfo {
     // An estimate of how much memory was committed by the process at its peak.
     // Resident Set Size in *nix, Working Set Size in Windows.
