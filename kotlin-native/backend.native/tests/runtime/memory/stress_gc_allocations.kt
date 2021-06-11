@@ -34,28 +34,32 @@ class MemoryHog(val size: Int, val value: Byte, val stride: Int) {
 
 @Test
 fun test() {
-    // One item is ~100MiB
-    val size = 100_000_000
-    val count = 10_000
+    // One item is ~10MiB.
+    val size = 10_000_000
+    // Total amount is ~1TiB.
+    val count = 100_000
     val value: Byte = 42
     // Try to make sure each page is written
     val stride = 4096
-    val rssLimit: Long = 2_000_000_000
+    // Limit maximum memory usage at ~200MiB
+    val rssLimit: Long = 200_000_000
+    // Trigger GC after ~100MiB are allocated
+    val retainLimit: Long = 100_000_000
+    val progressReportsCount = 100
 
     if (Platform.memoryModel == MemoryModel.EXPERIMENTAL) {
-        // Allow to retain ~1GiB
-        kotlin.native.internal.GC.thresholdAllocations = 10 * size.toLong()
+        kotlin.native.internal.GC.thresholdAllocations = retainLimit
         // Effectively disable trigger on safepoints.
         kotlin.native.internal.GC.threshold = Int.MAX_VALUE
     }
 
-    // This will allocate ~1TiB. If GC does not exist, this should fail.
     for (i in 0..count) {
-        if (i % 100 == 0) {
+        if (i % (count / progressReportsCount) == 0) {
             println("Allocating iteration ${i + 1} of $count")
         }
         val currentPeakRss = MemoryUsageInfo.peakResidentSetSizeBytes
         if (currentPeakRss > rssLimit) {
+            // If GC does not exist, this should eventually fail.
             fail("Current RSS $currentPeakRss is more than the limit $rssLimit")
         }
         MemoryHog(size, value, stride)
