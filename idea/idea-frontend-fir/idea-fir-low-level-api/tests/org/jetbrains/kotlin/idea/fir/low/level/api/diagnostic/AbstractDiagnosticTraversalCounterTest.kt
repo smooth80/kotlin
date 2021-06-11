@@ -109,7 +109,7 @@ abstract class AbstractDiagnosticTraversalCounterTest : KotlinLightCodeInsightFi
         firFile: FirElement,
     ): Set<FirElement> {
         val elementUsageCount = mutableMapOf<FirElement, Int>()
-        val sessionHolder = SessionHolderImpl((firFile as FirDeclaration).moduleData.session, ScopeSession())
+        val sessionHolder = SessionHolderImpl((firFile as FirDeclaration<*>).moduleData.session, ScopeSession())
         val visitor = object : AbstractDiagnosticCollectorVisitor(
             PersistentCheckerContextFactory.createEmptyPersistenceCheckerContext(sessionHolder)
         ) {

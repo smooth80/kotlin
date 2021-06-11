@@ -73,12 +73,12 @@ class BodyResolveContext(
         get() = towerDataContextsForClassParts.towerDataContextForCallableReferences
 
     @set:PrivateForInline
-    var containers: PersistentList<FirDeclaration> = persistentListOf()
+    var containers: PersistentList<FirDeclaration<*>> = persistentListOf()
 
     @set:PrivateForInline
     var containingClass: FirRegularClass? = null
 
-    val containerIfAny: FirDeclaration?
+    val containerIfAny: FirDeclaration<*>?
         get() = containers.lastOrNull()
 
     @set:PrivateForInline
@@ -107,7 +107,7 @@ class BodyResolveContext(
     }
 
     @PrivateForInline
-    inline fun <T> withContainer(declaration: FirDeclaration, f: () -> T): T {
+    inline fun <T> withContainer(declaration: FirDeclaration<*>, f: () -> T): T {
         val oldContainers = containers
         containers = containers.add(declaration)
         return try {
@@ -224,7 +224,7 @@ class BodyResolveContext(
     }
 
     @PrivateForInline
-    inline fun <T> withTypeParametersOf(declaration: FirMemberDeclaration, l: () -> T): T {
+    inline fun <T> withTypeParametersOf(declaration: FirMemberDeclaration<*>, l: () -> T): T {
         if (declaration.typeParameters.isEmpty()) return l()
         val scope = FirMemberTypeParameterScope(declaration)
         return withTowerDataCleanup {
@@ -233,7 +233,7 @@ class BodyResolveContext(
         }
     }
 
-    private fun FirMemberDeclaration.typeParameterScope(): FirMemberTypeParameterScope? {
+    private fun FirMemberDeclaration<*>.typeParameterScope(): FirMemberTypeParameterScope? {
         if (typeParameters.isEmpty()) return null
         return FirMemberTypeParameterScope(this)
     }

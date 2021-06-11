@@ -22,8 +22,7 @@ internal object DeclarationCopyBuilder {
         state: FirModuleResolveState,
         nonLocalDeclaration: KtDeclaration,
         replacement: RawFirReplacement
-    ): FirDeclaration {
-
+    ): FirDeclaration<*> {
         return when (nonLocalDeclaration) {
             is KtNamedFunction -> createFunctionCopy(
                 nonLocalDeclaration,
@@ -149,8 +148,8 @@ internal object DeclarationCopyBuilder {
     }
 
     private fun FirDeclarationBuilder.initDeclaration(
-        originalDeclaration: FirDeclaration,
-        builtDeclaration: FirDeclaration,
+        originalDeclaration: FirDeclaration<*>,
+        builtDeclaration: FirDeclaration<*>,
         state: FirModuleResolveState
     ) {
         resolvePhase = minOf(originalDeclaration.resolvePhase, FirResolvePhase.DECLARATIONS)
@@ -158,7 +157,7 @@ internal object DeclarationCopyBuilder {
         moduleData = state.rootModuleSession.moduleData
     }
 
-    internal inline fun <reified D : FirDeclaration> createCopy(
+    internal inline fun <reified D : FirDeclaration<*>> createCopy(
         rootNonLocalDeclaration: KtDeclaration,
         originalFirDeclaration: D,
         replacement: RawFirReplacement? = null,

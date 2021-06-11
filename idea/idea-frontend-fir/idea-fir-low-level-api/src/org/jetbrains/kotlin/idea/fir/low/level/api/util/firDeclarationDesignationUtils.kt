@@ -25,4 +25,4 @@ internal fun FirDeclarationUntypedDesignation.ensureTargetPhaseIfClass(firResolv
     else -> error("Unexpected target")
 }
 
-internal fun FirDeclarationUntypedDesignation.targetContainingDeclaration(): FirDeclaration? = path.lastOrNull()
+internal fun FirDeclarationUntypedDesignation.targetContainingDeclaration(): FirDeclaration<*>? = path.lastOrNull()

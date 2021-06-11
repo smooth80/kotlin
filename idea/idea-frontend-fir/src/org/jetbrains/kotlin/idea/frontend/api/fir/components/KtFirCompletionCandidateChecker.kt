@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFirOfType
 import org.jetbrains.kotlin.idea.fir.low.level.api.resolver.ResolutionParameters
 import org.jetbrains.kotlin.idea.fir.low.level.api.resolver.SingleCandidateResolutionMode
 import org.jetbrains.kotlin.idea.fir.low.level.api.resolver.SingleCandidateResolver
-import org.jetbrains.kotlin.idea.frontend.api.tokens.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.components.KtCompletionCandidateChecker
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirFunctionSymbol
@@ -22,6 +21,7 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirKotlinPropertySym
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.idea.frontend.api.tokens.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
 import org.jetbrains.kotlin.idea.util.getElementTextInContext
 import org.jetbrains.kotlin.psi.KtExpression
@@ -51,7 +51,7 @@ internal class KtFirCompletionCandidateChecker(
         functionFits ?: propertyFits ?: false
     }
 
-    private inline fun <reified T : KtFirSymbol<F>, F : FirDeclaration, R> KtCallableSymbol.withResolvedFirOfType(
+    private inline fun <reified T : KtFirSymbol<F>, F : FirDeclaration<*>, R> KtCallableSymbol.withResolvedFirOfType(
         noinline action: (F) -> R,
     ): R? = this.safeAs<T>()?.firRef?.withFir(phase = FirResolvePhase.BODY_RESOLVE, action)
 

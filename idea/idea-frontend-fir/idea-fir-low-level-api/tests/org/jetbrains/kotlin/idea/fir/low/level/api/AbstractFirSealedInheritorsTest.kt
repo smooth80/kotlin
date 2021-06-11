@@ -35,7 +35,7 @@ abstract class AbstractFirSealedInheritorsTest : AbstractFirMultiModuleLazyResol
     }
 }
 
-private fun FirDeclaration.listNestedClasses(): List<FirRegularClass> {
+private fun FirDeclaration<*>.listNestedClasses(): List<FirRegularClass> {
     return when (this) {
         is FirFile -> declarations.filterIsInstance<FirRegularClass>()
         is FirRegularClass -> declarations.filterIsInstance<FirRegularClass>()

@@ -50,8 +50,8 @@ fun main(args: Array<String>) {
 
     val declarationPackage = "$basePackage.checkers.declaration"
     generateCheckersComponents(generationPath, declarationPackage, "FirDeclarationChecker") {
-        alias<FirDeclaration>("BasicDeclarationChecker")
-        alias<FirMemberDeclaration>("MemberDeclarationChecker")
+        alias<FirDeclaration<*>>("BasicDeclarationChecker")
+        alias<FirMemberDeclaration<*>>("MemberDeclarationChecker")
         alias<FirFunction<*>>("FunctionChecker")
         alias<FirSimpleFunction>("SimpleFunctionChecker")
         alias<FirProperty>("PropertyChecker")
@@ -60,7 +60,7 @@ fun main(args: Array<String>) {
         alias<FirConstructor>("ConstructorChecker")
         alias<FirFile>("FileChecker")
         alias<FirTypeParameter>("FirTypeParameterChecker")
-        alias<FirAnnotatedDeclaration>("FirAnnotatedDeclarationChecker")
+        alias<FirAnnotatedDeclaration<*>>("FirAnnotatedDeclarationChecker")
 
         additional(
             fieldName = "controlFlowAnalyserCheckers",

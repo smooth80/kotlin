@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 
 object FirPhaseCheckingPhaseManager : FirPhaseManager() {
     override fun ensureResolved(symbol: FirBasedSymbol<*>, requiredPhase: FirResolvePhase) {
-        val fir = symbol.fir as FirDeclaration
+        val fir = symbol.fir
         val availablePhase = fir.resolvePhase
         require(availablePhase >= requiredPhase) {
             "Expected at least $requiredPhase for $symbol but was $availablePhase\n{${fir.render(renderMode)}"

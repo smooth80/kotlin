@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.expressions.FirStatement
-import org.jetbrains.kotlin.fir.resolve.ResolutionMode
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.lookupSuperTypes
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
@@ -85,13 +84,13 @@ abstract class FirAbstractTreeTransformerWithSuperTypes(
         }
     }
 
-    protected fun FirMemberDeclaration.addTypeParametersScope() {
+    protected fun FirMemberDeclaration<*>.addTypeParametersScope() {
         if (typeParameters.isNotEmpty()) {
             scopes.add(FirMemberTypeParameterScope(this))
         }
     }
 
-    open fun transformDeclarationContent(declaration: FirDeclaration, data: Any?): FirDeclaration {
+    open fun transformDeclarationContent(declaration: FirDeclaration<*>, data: Any?): FirDeclaration<*> {
         return transformElement(declaration, data)
     }
 }

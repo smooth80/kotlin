@@ -406,6 +406,6 @@ private fun FirVariable<*>.canBeMutableReference(candidate: Candidate): Boolean 
     if (this is FirField) return true
     val original = this.unwrapFakeOverrides()
     return original.source?.kind == FirFakeSourceElementKind.PropertyFromParameter ||
-            (original.setter is FirMemberDeclaration &&
+            (original.setter is FirMemberDeclaration<*> &&
                     candidate.callInfo.session.visibilityChecker.isVisible(original.setter!!, candidate))
 }

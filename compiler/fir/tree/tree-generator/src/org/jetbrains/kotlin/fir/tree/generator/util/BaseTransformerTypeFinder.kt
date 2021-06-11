@@ -17,7 +17,7 @@ fun detectBaseTransformerTypes(builder: AbstractFirTreeBuilder) {
         for (field in element.allFirFields) {
             val fieldElement = when (field) {
                 is FirField -> field.element
-                is FieldList -> field.baseType as Element
+                is FieldList -> field.baseType as AbstractElement
                 else -> throw IllegalArgumentException()
             }
             usedAsFieldType[fieldElement] = true

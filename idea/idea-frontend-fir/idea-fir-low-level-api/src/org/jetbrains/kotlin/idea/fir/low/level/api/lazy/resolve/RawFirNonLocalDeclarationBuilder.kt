@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.builder.RawFirBuilderMode
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
@@ -31,7 +33,7 @@ internal class RawFirNonLocalDeclarationBuilder private constructor(
             designation: FirDeclarationUntypedDesignation,
             rootNonLocalDeclaration: KtDeclaration,
             replacement: RawFirReplacement? = null
-        ): FirDeclaration {
+        ): FirDeclaration<*> {
             val replacementApplier = replacement?.Applier()
             val builder = RawFirNonLocalDeclarationBuilder(session, baseScopeProvider, rootNonLocalDeclaration, replacementApplier)
             builder.context.packageFqName = rootNonLocalDeclaration.containingKtFile.packageFqName
@@ -69,7 +71,7 @@ internal class RawFirNonLocalDeclarationBuilder private constructor(
         }
     }
 
-    private fun moveNext(iterator: Iterator<FirDeclaration>, containingClass: FirRegularClass?): FirDeclaration {
+    private fun moveNext(iterator: Iterator<FirDeclaration<*>>, containingClass: FirRegularClass?): FirDeclaration<*> {
         if (!iterator.hasNext()) {
             val visitor = VisitorWithReplacement()
             return when (declarationToBuild) {
@@ -79,7 +81,7 @@ internal class RawFirNonLocalDeclarationBuilder private constructor(
                     visitor.convertProperty(declarationToBuild, ownerSymbol, ownerTypeArgumentsCount)
                 }
                 else -> visitor.convertElement(declarationToBuild)
-            } as FirDeclaration
+            } as FirDeclaration<*>
         }
 
         val parent = iterator.next()

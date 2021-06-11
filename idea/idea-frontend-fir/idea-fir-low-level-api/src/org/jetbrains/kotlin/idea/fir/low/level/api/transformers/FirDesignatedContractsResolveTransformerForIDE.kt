@@ -31,12 +31,12 @@ internal class FirDesignatedContractsResolveTransformerForIDE(
 
 
     @Suppress("NAME_SHADOWING")
-    override fun transformDeclarationContent(declaration: FirDeclaration, data: ResolutionMode): FirDeclaration =
+    override fun transformDeclarationContent(declaration: FirDeclaration<*>, data: ResolutionMode): FirDeclaration<*> =
         ideDeclarationTransformer.transformDeclarationContent(this, declaration, data) {
             super.transformDeclarationContent(declaration, data)
         }
 
-    override fun needReplacePhase(firDeclaration: FirDeclaration): Boolean = ideDeclarationTransformer.needReplacePhase
+    override fun needReplacePhase(firDeclaration: FirDeclaration<*>): Boolean = ideDeclarationTransformer.needReplacePhase
 
     override fun transformDeclaration() {
         if (designation.declaration.resolvePhase >= FirResolvePhase.CONTRACTS) return

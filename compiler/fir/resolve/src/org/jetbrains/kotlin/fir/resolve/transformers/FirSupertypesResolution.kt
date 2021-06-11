@@ -102,7 +102,7 @@ class FirApplySupertypesTransformer(
         return element
     }
 
-    override fun transformFile(file: FirFile, data: Any?): FirDeclaration {
+    override fun transformFile(file: FirFile, data: Any?): FirFile {
         file.replaceResolvePhase(FirResolvePhase.SUPER_TYPES)
 
         return (file.transformChildren(this, null) as FirFile)
@@ -138,7 +138,7 @@ class FirApplySupertypesTransformer(
         return status.supertypeRefs
     }
 
-    override fun transformTypeAlias(typeAlias: FirTypeAlias, data: Any?): FirDeclaration {
+    override fun transformTypeAlias(typeAlias: FirTypeAlias, data: Any?): FirStatement {
         if (typeAlias.expandedTypeRef is FirResolvedTypeRef) return typeAlias
         val supertypeRefs = getResolvedSupertypeRefs(typeAlias)
 
@@ -155,7 +155,7 @@ class FirApplySupertypesTransformer(
 }
 
 private fun FirClassLikeDeclaration<*>.typeParametersScope(): FirScope? {
-    if (this !is FirMemberDeclaration || typeParameters.isEmpty()) return null
+    if (this !is FirMemberDeclaration<*> || typeParameters.isEmpty()) return null
     return FirMemberTypeParameterScope(this)
 }
 

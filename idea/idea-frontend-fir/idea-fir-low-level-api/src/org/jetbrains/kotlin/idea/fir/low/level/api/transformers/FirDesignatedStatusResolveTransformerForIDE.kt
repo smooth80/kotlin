@@ -14,9 +14,9 @@ import org.jetbrains.kotlin.fir.resolve.transformers.FirStatusResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.StatusComputationSession
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirDeclarationUntypedDesignationWithFile
-import org.jetbrains.kotlin.idea.fir.low.level.api.util.targetContainingDeclaration
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.ensurePathPhase
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.ensureTargetPhase
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.targetContainingDeclaration
 
 internal class FirDesignatedStatusResolveTransformerForIDE(
     private val designation: FirDeclarationUntypedDesignationWithFile,
@@ -24,7 +24,7 @@ internal class FirDesignatedStatusResolveTransformerForIDE(
     private val scopeSession: ScopeSession,
 ) : FirLazyTransformerForIDE {
 
-    private fun resolveTopLevelDeclaration(declaration: FirDeclaration) {
+    private fun resolveTopLevelDeclaration(declaration: FirDeclaration<*>) {
         val transformer = FirStatusResolveTransformer(
             session = session,
             scopeSession = scopeSession,
@@ -33,7 +33,7 @@ internal class FirDesignatedStatusResolveTransformerForIDE(
         declaration.transformSingle(transformer, null)
     }
 
-    private fun resolveClassMember(containingClass: FirClass<*>, targetDeclaration: FirDeclaration) {
+    private fun resolveClassMember(containingClass: FirClass<*>, targetDeclaration: FirDeclaration<*>) {
 
         val transformer = object : FirDesignatedStatusResolveTransformer(
             session = session,

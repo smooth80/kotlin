@@ -10,13 +10,16 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.jetbrains.kotlin.KtNodeTypes
-import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.FirLightSourceElement
+import org.jetbrains.kotlin.fir.FirPsiSourceElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirBasicDeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.getChildren
 import org.jetbrains.kotlin.fir.analysis.diagnostics.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
+import org.jetbrains.kotlin.fir.text
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.anyDescendantOfType
 import org.jetbrains.kotlin.psi.stubs.elements.KtDotQualifiedExpressionElementType
@@ -109,7 +112,7 @@ object FirReservedUnderscoreExpressionChecker : FirBasicExpressionChecker() {
 }
 
 object FirReservedUnderscoreDeclarationChecker : FirBasicDeclarationChecker() {
-    override fun check(declaration: FirDeclaration, context: CheckerContext, reporter: DiagnosticReporter) {
+    override fun check(declaration: FirDeclaration<*>, context: CheckerContext, reporter: DiagnosticReporter) {
         if (
             declaration is FirClass<*> ||
             declaration is FirFunction<*> ||
@@ -138,7 +141,7 @@ object FirReservedUnderscoreDeclarationChecker : FirBasicDeclarationChecker() {
 }
 
 private fun reportIfUnderscore(
-    declaration: FirDeclaration,
+    declaration: FirDeclaration<*>,
     context: CheckerContext,
     reporter: DiagnosticReporter,
     isSingleUnderscoreAllowed: Boolean = false

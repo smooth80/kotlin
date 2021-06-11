@@ -19,16 +19,16 @@ import org.jetbrains.kotlin.name.ClassId
 internal fun FirAnnotationCall.getClassId(session: FirSession): ClassId? =
     coneClassLikeType?.expandTypeAliasIfNeeded(session)?.classId
 
-internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration>.toAnnotationsList() = withFir { fir ->
+internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration<*>>.toAnnotationsList() = withFir { fir ->
     fir.annotations.map { KtFirAnnotationCall(this, it) }
 }
 
-internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration>.containsAnnotation(classId: ClassId): Boolean =
+internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration<*>>.containsAnnotation(classId: ClassId): Boolean =
     withFir(AnnotationPhases.PHASE_FOR_ANNOTATION_CLASS_ID) { fir ->
         fir.annotations.any { it.getClassId(fir.moduleData.session) == classId }
     }
 
-internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration>.getAnnotationClassIds(): Collection<ClassId> =
+internal fun FirRefWithValidityCheck<FirAnnotatedDeclaration<*>>.getAnnotationClassIds(): Collection<ClassId> =
     withFir(AnnotationPhases.PHASE_FOR_ANNOTATION_CLASS_ID) { fir ->
         fir.annotations.mapNotNull { it.getClassId(fir.moduleData.session) }
     }

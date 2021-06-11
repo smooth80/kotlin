@@ -178,7 +178,7 @@ internal class ReanalyzablePropertyStructureElement(
 
 internal class NonReanalyzableDeclarationStructureElement(
     firFile: FirFile,
-    val fir: FirDeclaration,
+    val fir: FirDeclaration<*>,
     override val psi: KtDeclaration,
     lockProvider: LockProvider<FirFile>,
 ) : FileStructureElement(firFile, lockProvider) {
@@ -219,7 +219,7 @@ internal class RootStructureElement(
     companion object {
         private val recorder = object : FirElementsRecorder() {
             override fun visitElement(element: FirElement, data: MutableMap<KtElement, FirElement>) {
-                if (element !is FirDeclaration || element is FirFile) {
+                if (element !is FirDeclaration<*> || element is FirFile) {
                     super.visitElement(element, data)
                 }
             }

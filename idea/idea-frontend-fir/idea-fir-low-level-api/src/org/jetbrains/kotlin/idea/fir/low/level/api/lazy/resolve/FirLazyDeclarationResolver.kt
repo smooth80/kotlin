@@ -23,7 +23,10 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.firIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.transformers.*
-import org.jetbrains.kotlin.idea.fir.low.level.api.util.*
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.checkCanceled
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.executeWithoutPCE
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.findSourceNonLocalFirDeclaration
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.getContainingFile
 import org.jetbrains.kotlin.idea.util.ifTrue
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
@@ -73,7 +76,7 @@ internal class FirLazyDeclarationResolver(
         ).transformDeclaration()
     }
 
-    private fun getResolvableDeclaration(declaration: FirDeclaration, moduleFileCache: ModuleFileCache): FirDeclaration {
+    private fun getResolvableDeclaration(declaration: FirDeclaration<*>, moduleFileCache: ModuleFileCache): FirDeclaration<*> {
         if (declaration is FirPropertyAccessor || declaration is FirTypeParameter || declaration is FirValueParameter) {
             val ktContainingResolvableDeclaration = when (val psi = declaration.psi) {
                 is KtPropertyAccessor -> psi.property
@@ -105,7 +108,7 @@ internal class FirLazyDeclarationResolver(
      * @see runLazyResolveWithoutLock (not synchronized)
      */
     fun lazyResolveDeclaration(
-        declaration: FirDeclaration,
+        declaration: FirDeclaration<*>,
         moduleFileCache: ModuleFileCache,
         toPhase: FirResolvePhase,
         checkPCE: Boolean = false,
@@ -172,7 +175,7 @@ internal class FirLazyDeclarationResolver(
      * @see lazyResolveDeclaration synchronized version
      */
     private fun runLazyResolveWithoutLock(
-        firDeclarationToResolve: FirDeclaration,
+        firDeclarationToResolve: FirDeclaration<*>,
         moduleFileCache: ModuleFileCache,
         containerFirFile: FirFile,
         provider: FirProvider,
@@ -216,7 +219,7 @@ internal class FirLazyDeclarationResolver(
      * @param isOnAirResolve should be true when node does not belong to it's true designation (OnAir resolve in custom context)
      */
     fun lazyDesignatedResolveDeclaration(
-        firDeclarationToResolve: FirDeclaration,
+        firDeclarationToResolve: FirDeclaration<*>,
         moduleFileCache: ModuleFileCache,
         containerFirFile: FirFile,
         provider: FirProvider,
@@ -268,7 +271,7 @@ internal class FirLazyDeclarationResolver(
      * @see lazyDesignatedResolveDeclaration synchronized version
      */
     private fun runLazyDesignatedResolveWithoutLock(
-        firDeclarationToResolve: FirDeclaration,
+        firDeclarationToResolve: FirDeclaration<*>,
         moduleFileCache: ModuleFileCache,
         containerFirFile: FirFile,
         provider: FirProvider,
@@ -387,7 +390,7 @@ internal class FirLazyDeclarationResolver(
         else -> error("Non-lazy phase $this")
     }
 
-    private fun FirDeclaration.getNonLocalDeclarationToResolve(provider: FirProvider, moduleFileCache: ModuleFileCache): FirDeclaration {
+    private fun FirDeclaration<*>.getNonLocalDeclarationToResolve(provider: FirProvider, moduleFileCache: ModuleFileCache): FirDeclaration<*> {
         if (this is FirFile) return this
         val ktDeclaration = psi as? KtDeclaration ?: error("FirDeclaration should have a PSI of type KtDeclaration")
         if (declarationCanBeLazilyResolved(ktDeclaration)) return this

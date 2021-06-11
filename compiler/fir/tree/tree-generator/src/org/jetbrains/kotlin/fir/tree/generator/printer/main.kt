@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.fir.tree.generator.context.AbstractFirTreeBuilder
 import org.jetbrains.kotlin.util.SmartPrinter
 import java.io.File
 
-private val COPYRIGHT = File("license/COPYRIGHT_HEADER.txt").readText()
+private val COPYRIGHT = File("/home/demiurg/Programming/kotlin/kotlin-pill/license/COPYRIGHT_HEADER.txt").readText()
 
 const val VISITOR_PACKAGE = "org.jetbrains.kotlin.fir.visitors"
 const val BASE_PACKAGE = "org.jetbrains.kotlin.fir"

@@ -151,7 +151,7 @@ object FirImportsChecker : FirFileChecker() {
     private fun FirRegularClass.hasFunctionOrProperty(
         context: CheckerContext,
         name: Name,
-        predicate: (FirDeclaration) -> Boolean
+        predicate: (FirDeclaration<*>) -> Boolean
     ): Boolean {
         var result = false
         val scope = context.session.declaredMemberScope(this)

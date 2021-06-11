@@ -12,11 +12,11 @@ import org.jetbrains.kotlin.fir.renderWithType
 import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.toFirRegularClass
 
-typealias FirDeclarationUntypedDesignation = FirDeclarationDesignation<FirDeclaration>
-typealias FirDeclarationUntypedDesignationWithFile = FirDeclarationDesignationWithFile<FirDeclaration>
+typealias FirDeclarationUntypedDesignation = FirDeclarationDesignation<FirDeclaration<*>>
+typealias FirDeclarationUntypedDesignationWithFile = FirDeclarationDesignationWithFile<FirDeclaration<*>>
 
-class FirDeclarationDesignationWithFile<out T : FirDeclaration>(
-    path: List<FirDeclaration>,
+class FirDeclarationDesignationWithFile<out T : FirDeclaration<*>>(
+    path: List<FirDeclaration<*>>,
     declaration: T,
     isLocalDesignation: Boolean,
     val firFile: FirFile
@@ -25,19 +25,19 @@ class FirDeclarationDesignationWithFile<out T : FirDeclaration>(
     declaration,
     isLocalDesignation
 ) {
-    fun toSequenceWithFile(includeTarget: Boolean): Sequence<FirDeclaration> = sequence {
+    fun toSequenceWithFile(includeTarget: Boolean): Sequence<FirDeclaration<*>> = sequence {
         yield(firFile)
         yieldAll(path)
         if (includeTarget) yield(declaration)
     }
 }
 
-open class FirDeclarationDesignation<out T : FirDeclaration>(
-    val path: List<FirDeclaration>,
+open class FirDeclarationDesignation<out T : FirDeclaration<*>>(
+    val path: List<FirDeclaration<*>>,
     val declaration: T,
     val isLocalDesignation: Boolean
 ) {
-    fun toSequence(includeTarget: Boolean): Sequence<FirDeclaration> = sequence {
+    fun toSequence(includeTarget: Boolean): Sequence<FirDeclaration<*>> = sequence {
         yieldAll(path)
         if (includeTarget) yield(declaration)
     }
@@ -47,12 +47,12 @@ private fun FirClassLikeDeclaration<*>.containingClass(): FirClassLikeDeclaratio
     if (isLocal) (this as? FirRegularClass)?.containingClassForLocal()?.toFirRegularClass(moduleData.session)
     else symbol.classId.outerClassId?.let(moduleData.session.firProvider::getFirClassifierByFqName)
 
-private fun collectDesignationAndIsLocal(declaration: FirDeclaration): Pair<List<FirDeclaration>, Boolean> {
+private fun collectDesignationAndIsLocal(declaration: FirDeclaration<*>): Pair<List<FirDeclaration<*>>, Boolean> {
     val containingClass = when (declaration) {
         is FirCallableDeclaration<*> -> declaration.containingClass()?.toFirRegularClass(declaration.moduleData.session)
         is FirClassLikeDeclaration<*> -> declaration.containingClass()
         else -> error("Invalid declaration ${declaration.renderWithType()}")
-    } ?: return emptyList<FirDeclaration>() to false
+    } ?: return emptyList<FirDeclaration<*>>() to false
 
     require(containingClass is FirRegularClass) {
         "FirRegularClass as containing declaration expected but found ${containingClass.renderWithType()}"
@@ -65,11 +65,11 @@ private fun collectDesignationAndIsLocal(declaration: FirDeclaration): Pair<List
     return path.reversed() to containingClass.isLocal
 }
 
-private fun FirRegularClass.collectForNonLocal(): List<FirDeclaration> {
+private fun FirRegularClass.collectForNonLocal(): List<FirDeclaration<*>> {
     require(!isLocal)
     val firProvider = moduleData.session.firProvider
     var containingClassId = classId.outerClassId
-    val designation = mutableListOf<FirDeclaration>(this)
+    val designation = mutableListOf<FirDeclaration<*>>(this)
     while (containingClassId != null) {
         val currentClass = firProvider.getFirClassifierByFqName(containingClassId) ?: break
         designation.add(currentClass)
@@ -91,12 +91,12 @@ private fun FirRegularClass.collectForLocal(): List<FirClassLikeDeclaration<*>> 
 }
 
 
-fun FirDeclaration.collectDesignation(firFile: FirFile): FirDeclarationUntypedDesignationWithFile =
+fun FirDeclaration<*>.collectDesignation(firFile: FirFile): FirDeclarationUntypedDesignationWithFile =
     collectDesignationAndIsLocal(this).let {
         FirDeclarationUntypedDesignationWithFile(it.first, this, it.second, firFile)
     }
 
-fun FirDeclaration.collectDesignation(): FirDeclarationUntypedDesignation =
+fun FirDeclaration<*>.collectDesignation(): FirDeclarationUntypedDesignation =
     collectDesignationAndIsLocal(this).let {
         FirDeclarationUntypedDesignation(it.first, this, it.second)
     }

@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.idea.fir.low.level.api.util
 
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.psi.util.parentsOfType
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticHolder
@@ -60,7 +59,7 @@ internal inline fun checkCanceled() {
 internal val FirElement.isErrorElement
     get() = this is FirDiagnosticHolder
 
-internal val FirDeclaration.ktDeclaration: KtDeclaration
+internal val FirDeclaration<*>.ktDeclaration: KtDeclaration
     get() {
         val psi = psi
             ?: error("PSI element was not found for${render()}")
@@ -78,7 +77,7 @@ internal val FirDeclaration.ktDeclaration: KtDeclaration
         }
     }
 
-internal val FirDeclaration.containingKtFileIfAny: KtFile?
+internal val FirDeclaration<*>.containingKtFileIfAny: KtFile?
     get() = psi?.containingFile as? KtFile
 
 
