@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.FirSymbolOwner
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.render
-import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousInitializerSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
@@ -38,7 +38,7 @@ internal fun Module.incModificationTracker() {
     project.service<KotlinFirModificationTrackerService>().increaseModificationCountForModule(this)
 }
 
-internal fun AbstractFirBasedSymbol<*>.name(): String = when (this) {
+internal fun FirBasedSymbol<*>.name(): String = when (this) {
     is FirCallableSymbol<*> -> callableId.callableName.asString()
     is FirClassLikeSymbol<*> -> classId.shortClassName.asString()
     is FirAnonymousInitializerSymbol -> "<init>"

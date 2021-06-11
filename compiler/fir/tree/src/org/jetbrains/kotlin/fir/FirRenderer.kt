@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.*
 import org.jetbrains.kotlin.fir.references.*
-import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -1056,7 +1056,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         print("*")
     }
 
-    private fun AbstractFirBasedSymbol<*>.render(): String {
+    private fun FirBasedSymbol<*>.render(): String {
         return when (this) {
             is FirCallableSymbol<*> -> callableId.toString()
             is FirClassLikeSymbol<*> -> classId.toString()
@@ -1122,7 +1122,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         print("|")
     }
 
-    private fun AbstractFirBasedSymbol<*>.unwrapIntersectionOverrides(): AbstractFirBasedSymbol<*> {
+    private fun FirBasedSymbol<*>.unwrapIntersectionOverrides(): FirBasedSymbol<*> {
         (this as? FirCallableSymbol<*>)?.baseForIntersectionOverride?.let { return it.unwrapIntersectionOverrides() }
         return this
     }

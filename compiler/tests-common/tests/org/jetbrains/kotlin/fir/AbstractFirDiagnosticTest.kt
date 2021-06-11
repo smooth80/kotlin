@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.FirControlFlowGraphRenderVisitor
 import org.jetbrains.kotlin.fir.resolve.transformers.createAllCompilerResolveProcessors
-import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -226,7 +226,7 @@ abstract class AbstractFirDiagnosticsTest : AbstractFirBaseDiagnosticsTest() {
         }
     }
 
-    private fun AbstractFirBasedSymbol<*>.fqNameUnsafe(): FqNameUnsafe? = when (this) {
+    private fun FirBasedSymbol<*>.fqNameUnsafe(): FqNameUnsafe? = when (this) {
         is FirClassLikeSymbol<*> -> classId.asSingleFqName().toUnsafe()
         is FirCallableSymbol<*> -> callableId.asFqNameForDebugInfo().toUnsafe()
         else -> null
@@ -234,7 +234,7 @@ abstract class AbstractFirDiagnosticsTest : AbstractFirBaseDiagnosticsTest() {
 
     private fun getTypeOfCall(
         reference: FirNamedReference,
-        resolvedSymbol: AbstractFirBasedSymbol<*>?
+        resolvedSymbol: FirBasedSymbol<*>?
     ): String {
         if (resolvedSymbol == null) return TypeOfCall.UNRESOLVED.nameToRender
 

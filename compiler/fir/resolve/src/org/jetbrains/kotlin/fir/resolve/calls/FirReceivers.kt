@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.resolve.scope
 import org.jetbrains.kotlin.fir.resolvedTypeFromPrototype
 import org.jetbrains.kotlin.fir.scopes.FakeOverrideTypeCalculator
 import org.jetbrains.kotlin.fir.scopes.FirTypeScope
-import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinErrorType
@@ -58,7 +58,7 @@ class ExpressionReceiverValue(
     override val explicitReceiver: FirExpression
 ) : AbstractExplicitReceiverValue<FirExpression>(), ReceiverValue
 
-sealed class ImplicitReceiverValue<S : AbstractFirBasedSymbol<*>>(
+sealed class ImplicitReceiverValue<S : FirBasedSymbol<*>>(
     val boundSymbol: S,
     type: ConeKotlinType,
     protected val useSiteSession: FirSession,
@@ -97,7 +97,7 @@ sealed class ImplicitReceiverValue<S : AbstractFirBasedSymbol<*>>(
     }
 }
 
-private fun receiverExpression(symbol: AbstractFirBasedSymbol<*>, type: ConeKotlinType): FirThisReceiverExpression =
+private fun receiverExpression(symbol: FirBasedSymbol<*>, type: ConeKotlinType): FirThisReceiverExpression =
     buildThisReceiverExpression {
         // NB: we can't use `symbol.fir.source` as the source of `this` receiver. For instance, if this is an implicit receiver for a class,
         // the entire class itself will be set as a source. If combined with an implicit type operation, a certain assertion, like null
