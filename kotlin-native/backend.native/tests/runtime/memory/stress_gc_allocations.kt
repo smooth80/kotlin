@@ -58,6 +58,9 @@ fun test() {
             println("Allocating iteration ${i + 1} of $count")
         }
         val currentPeakRss = MemoryUsageInfo.peakResidentSetSizeBytes
+        if (currentPeakRss == 0) {
+            fail("Error trying to obtain peak RSS. Check if current platform is supported")
+        }
         if (currentPeakRss > rssLimit) {
             // If GC does not exist, this should eventually fail.
             fail("Current RSS $currentPeakRss is more than the limit $rssLimit")
