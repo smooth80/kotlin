@@ -261,7 +261,7 @@ fun LexicalScope.replaceImportingScopes(importingScopeChain: ImportingScope?): L
 fun LexicalScope.createScopeForDestructuring(newReceiver: ReceiverParameterDescriptor?): LexicalScope {
     return LexicalScopeImpl(
         parent, ownerDescriptor, isOwnerDescriptorAccessibleByLabel,
-        listOfNotNull(newReceiver),
+        listOfNotNull(newReceiver), listOf(),
         LexicalScopeKind.FUNCTION_HEADER_FOR_DESTRUCTURING
     )
 }
@@ -325,6 +325,7 @@ class ErrorLexicalScope : LexicalScope {
     override val ownerDescriptor: DeclarationDescriptor = ErrorUtils.createErrorClass("<ERROR CLASS FOR ERROR SCOPE>")
     override val isOwnerDescriptorAccessibleByLabel: Boolean = false
     override val implicitReceivers: List<ReceiverParameterDescriptor> = emptyList()
+    override val contextReceiversGroup: List<ReceiverParameterDescriptor> = emptyList()
     override val kind: LexicalScopeKind = LexicalScopeKind.THROWING
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null

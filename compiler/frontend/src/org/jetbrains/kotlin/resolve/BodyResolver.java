@@ -161,8 +161,7 @@ public class BodyResolver {
                         descriptor, localContext != null ? localContext.inferenceSession : null
                 ),
                 scope -> new LexicalScopeImpl(
-                        scope, descriptor, scope.isOwnerDescriptorAccessibleByLabel(), scope.getImplicitReceivers(),
-                        LexicalScopeKind.CONSTRUCTOR_HEADER
+                        scope, descriptor, scope.isOwnerDescriptorAccessibleByLabel(), scope.getImplicitReceivers(), scope.getContextReceiversGroup(),                        LexicalScopeKind.CONSTRUCTOR_HEADER
                 ),
                 localContext
         );
@@ -438,7 +437,8 @@ public class BodyResolver {
     ) {
         // Initializing a scope will report errors if any.
         new LexicalScopeImpl(
-                scopeForConstructorResolution, descriptor, true, Collections.emptyList(), LexicalScopeKind.CLASS_HEADER,
+                scopeForConstructorResolution, descriptor, true, Collections.emptyList(), Collections.emptyList(),
+                LexicalScopeKind.CLASS_HEADER,
                 new TraceBasedLocalRedeclarationChecker(trace, overloadChecker),
                 new Function1<LexicalScopeImpl.InitializeHandler, Unit>() {
                     @Override
@@ -772,7 +772,7 @@ public class BodyResolver {
             ConstructorDescriptor unsubstitutedPrimaryConstructor
     ) {
         return new LexicalScopeImpl(originalScope, unsubstitutedPrimaryConstructor, false, Collections.emptyList(),
-                                    LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
+                                    Collections.emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
                                     handler -> {
                                         for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.getValueParameters()) {
                                             handler.addVariableDescriptor(valueParameter);
@@ -859,7 +859,7 @@ public class BodyResolver {
         if (extensionReceiverParameter != null) {
             implicitReceivers.add(extensionReceiverParameter);
         }
-        return new LexicalScopeImpl(headerScope, descriptor, true, implicitReceivers,
+        return new LexicalScopeImpl(headerScope, descriptor, true, implicitReceivers, /*TODO*/ Collections.emptyList(),
                                     LexicalScopeKind.PROPERTY_ACCESSOR_BODY);
     }
 
@@ -1020,7 +1020,7 @@ public class BodyResolver {
             KtProperty property = (KtProperty) function.getParent();
             SyntheticFieldDescriptor fieldDescriptor = new SyntheticFieldDescriptor(accessorDescriptor, property);
             innerScope = new LexicalScopeImpl(innerScope, functionDescriptor, true, Collections.emptyList(),
-                                              LexicalScopeKind.PROPERTY_ACCESSOR_BODY,
+                                              Collections.emptyList(), LexicalScopeKind.PROPERTY_ACCESSOR_BODY,
                                               LocalRedeclarationChecker.DO_NOTHING.INSTANCE, handler -> {
                                                   handler.addVariableDescriptor(fieldDescriptor);
                                                   return Unit.INSTANCE;

@@ -132,27 +132,41 @@ class TowerResolver {
                 }
             }
 
-            lexicalScope.parentsWithSelf.forEach { scope ->
-                if (scope is LexicalScope) {
-                    if (!scope.kind.withLocalDescriptors) {
-                        addLevel(
-                            ScopeBasedTowerLevel(this@createNonLocalLevels, scope),
-                            scope.mayFitForName(name)
-                        )
-                    }
-
-                    getImplicitReceivers(scope).forEach {
-                        addLevel(
-                            MemberScopeTowerLevel(this@createNonLocalLevels, it),
-                            it.mayFitForName(name)
-                        )
-                    }
-                } else {
+            val parentScopes = lexicalScope.parentsWithSelf
+            val lexicalScopes = parentScopes.filterIsInstance<LexicalScope>()
+            lexicalScopes.forEach { scope ->
+                if (!scope.kind.withLocalDescriptors) {
                     addLevel(
-                        ImportingScopeBasedTowerLevel(this@createNonLocalLevels, scope as ImportingScope),
+                        ScopeBasedTowerLevel(this@createNonLocalLevels, scope),
                         scope.mayFitForName(name)
                     )
                 }
+
+                // TODO one implicit receiver
+                getImplicitReceivers(scope).forEach {
+                    addLevel(
+                        MemberScopeTowerLevel(this@createNonLocalLevels, it),
+                        it.mayFitForName(name)
+                    )
+                }
+            }
+
+            lexicalScopes.forEach { scope ->
+                val contextReceiversGroup = getContextReceivers(scope)
+                if (contextReceiversGroup.isNotEmpty()) {
+                    addLevel(
+                        ContextReceiversGroupScopeTowerLevel(this@createNonLocalLevels, contextReceiversGroup),
+                        contextReceiversGroup.any { it.mayFitForName(name) }
+                    )
+                }
+            }
+
+            val importingScopes = parentScopes - lexicalScopes
+            importingScopes.forEach { scope ->
+                addLevel(
+                    ImportingScopeBasedTowerLevel(this@createNonLocalLevels, scope as ImportingScope),
+                    scope.mayFitForName(name)
+                )
             }
 
             return mainResult

@@ -37,6 +37,8 @@ interface ImplicitScopeTower {
 
     fun getImplicitReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo>
 
+    fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo>
+
     val dynamicScope: MemberScope
 
     val syntheticScopes: SyntheticScopes

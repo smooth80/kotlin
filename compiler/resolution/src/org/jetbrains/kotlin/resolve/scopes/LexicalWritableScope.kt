@@ -32,6 +32,8 @@ class LexicalWritableScope(
 
     override val implicitReceivers: List<ReceiverParameterDescriptor>
         get() = emptyList()
+    override val contextReceiversGroup: List<ReceiverParameterDescriptor>
+        get() = emptyList()
 
     private var canWrite: Boolean = true
     private var lastSnapshot: Snapshot? = null
@@ -112,6 +114,8 @@ class LexicalWritableScope(
             ownerDescriptor.name,
             " with implicitReceivers: ",
             if (implicitReceivers.isEmpty()) "NONE" else implicitReceivers.joinToString { it.value.toString() },
+            " with contextReceiversGroup: ",
+            if (contextReceiversGroup.isEmpty()) "NONE" else contextReceiversGroup.joinToString { it.value.toString() },
             " {"
         )
         p.pushIndent()
