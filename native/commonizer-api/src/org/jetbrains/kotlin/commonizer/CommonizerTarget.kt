@@ -124,3 +124,6 @@ public fun CommonizerTarget.withAllLeaves(): Set<CommonizerTarget> {
     }
 }
 
+public fun Iterable<CommonizerTarget>.withAllLeaves(): Set<CommonizerTarget> {
+    return flatMapTo(mutableSetOf()) { it.withAllLeaves() }
+}
