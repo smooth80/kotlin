@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.realPsi
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
@@ -105,6 +106,7 @@ internal class FirModuleResolveStateImpl(
 
         firLazyDeclarationResolver.lazyResolveDeclaration(
             firDeclarationToResolve = nonLocalFirForNamedDeclaration,
+            scopeSession = ScopeSession(),
             moduleFileCache = (nonLocalFirForNamedDeclaration.moduleData.session as FirIdeSourcesSession).cache,
             toPhase = FirResolvePhase.BODY_RESOLVE,
             checkPCE = false, /*TODO*/
@@ -129,6 +131,7 @@ internal class FirModuleResolveStateImpl(
         firLazyDeclarationResolver.lazyResolveDeclaration(
             firDeclarationToResolve = declaration,
             moduleFileCache = fileCache,
+            scopeSession = ScopeSession(),
             toPhase = toPhase,
             checkPCE = true,
         )
@@ -144,6 +147,7 @@ internal class FirModuleResolveStateImpl(
         firLazyDeclarationResolver.lazyResolveDeclaration(
             firDeclaration = declaration,
             moduleFileCache = fileCache,
+            scopeSession = ScopeSession(),
             toResolveType = type,
             checkPCE = true,
         )
