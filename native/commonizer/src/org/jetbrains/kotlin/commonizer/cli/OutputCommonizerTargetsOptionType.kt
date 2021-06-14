@@ -15,9 +15,9 @@ internal object OutputCommonizerTargetsOptionType : OptionType<Set<SharedCommoni
 ) {
     override fun parse(rawValue: String, onError: (reason: String) -> Nothing): Option<Set<SharedCommonizerTarget>> {
         return try {
-            return Option(this, rawValue.split(";").map(::parseCommonizerTarget).map { it as SharedCommonizerTarget }.toSet())
+            Option(this, rawValue.split(";").map(::parseCommonizerTarget).map { it as SharedCommonizerTarget }.toSet())
         } catch (t: Throwable) {
-            onError("Failed parsing output-commonizer-target ($rawValue): ${t.message}")
+            onError("Failed parsing output-target ($rawValue): ${t.message}")
         }
     }
 }

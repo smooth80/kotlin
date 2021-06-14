@@ -7,7 +7,6 @@
 
 package org.jetbrains.kotlin.commonizer
 
-import org.jetbrains.kotlin.commonizer.util.transitiveClosure
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.Serializable
 
@@ -106,35 +105,22 @@ public val CommonizerTarget.level: Int
         }
     }
 
-public fun CommonizerTarget.withAllAncestors(): Set<CommonizerTarget> {
-    return setOf(this) + transitiveClosure(this) {
-        when (this) {
-            is SharedCommonizerTarget -> targets
-            is LeafCommonizerTarget -> emptyList()
-        }
-    }
-}
 
 public fun CommonizerTarget.allLeaves(): Set<LeafCommonizerTarget> {
-    return withAllAncestors().filterIsInstance<LeafCommonizerTarget>().toSet()
-}
-
-// TODO NOW: Sloppy
-public fun Iterable<CommonizerTarget>.allLeaves(): Set<LeafCommonizerTarget> {
-    return flatMap { it.allLeaves() }.toSet()
-}
-
-public infix fun CommonizerTarget.isAncestorOf(other: CommonizerTarget): Boolean {
-    if (this is SharedCommonizerTarget) {
-        return targets.any { it == other } || targets.any { it.isAncestorOf(other) }
+    return when (this) {
+        is LeafCommonizerTarget -> setOf(this)
+        is SharedCommonizerTarget -> this.targets
     }
-    return false
 }
 
-public infix fun CommonizerTarget.isEqualOrAncestorOf(other: CommonizerTarget): Boolean {
-    return this == other || this.isAncestorOf(other)
+public fun Iterable<CommonizerTarget>.allLeaves(): Set<LeafCommonizerTarget> {
+    return flatMapTo(mutableSetOf()) { target -> target.allLeaves() }
 }
 
-public infix fun CommonizerTarget.isDescendentOf(other: CommonizerTarget): Boolean {
-    return other.isAncestorOf(this)
+public fun CommonizerTarget.withAllLeaves(): Set<CommonizerTarget> {
+    return when (this) {
+        is LeafCommonizerTarget -> setOf(this)
+        is SharedCommonizerTarget -> setOf(this) + targets
+    }
 }
+

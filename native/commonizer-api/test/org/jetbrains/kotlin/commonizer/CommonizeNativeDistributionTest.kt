@@ -28,5 +28,7 @@ class CommonizeNativeDistributionTest {
             outputDirectory = temporaryOutputDirectory.root,
             logLevel = CommonizerLogLevel.Info
         )
+
+        //TODO NOW: Assertions!
     }
 }

@@ -21,21 +21,23 @@ internal object CommonizerQueue {
         val storageManager = LockBasedStorageManager("Declarations commonization")
 
 
-        val lazyLeafCirTress: Map<LeafCommonizerTarget, Lazy<CirTreeRoot?>> = parameters.outputTargets.allLeaves().associateWith { target ->
-            lazy { deserialize(parameters, target) }
+        val lazyLeafCirTress: Map<LeafCommonizerTarget, CirTreeRoot?> = parameters.outputTargets.allLeaves().associateWith { target ->
+            deserialize(parameters, target)
         }
 
-        parameters.outputTargets.forEach { target ->
+        parameters.logProgress("Deserialized libraries")
+
+        parameters.outputTargets.forEach loop@{ target ->
             val classifiers = CirKnownClassifiers(
                 commonizedNodes = CirCommonizedClassifierNodes.default(),
                 commonDependencies = parameters.dependencyClassifiers(target)
             )
 
             val cirTrees = EagerTargetDependent(target.targets) {
-                lazyLeafCirTress.getValue(it as LeafCommonizerTarget).value
+                lazyLeafCirTress.getValue(it as LeafCommonizerTarget)
             }
 
-            val mergedTree = merge(storageManager, classifiers, cirTrees) ?: return@forEach
+            val mergedTree = merge(storageManager, classifiers, cirTrees) ?: return@loop
             InlineTypeAliasCirNodeTransformer(storageManager, classifiers).invoke(mergedTree)
             mergedTree.accept(CommonizationVisitor(classifiers, mergedTree), Unit)
             parameters.logProgress("Commonized declarations for $target")

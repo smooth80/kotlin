@@ -9,7 +9,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class CommonizerTargetPrettyNameTest {
-    /* TODO NOW
 
     @Test
     fun leafTargetNames() {
@@ -29,7 +28,6 @@ class CommonizerTargetPrettyNameTest {
             "[foo]" to SharedTarget(FOO),
             "[bar, foo]" to SharedTarget(FOO, BAR),
             "[bar, baz_123, foo]" to SharedTarget(FOO, BAR, BAZ),
-            "[bar, baz_123, foo, [bar, foo]]" to SharedTarget(FOO, BAR, BAZ, SharedTarget(FOO, BAR))
         ).forEach { (prettyName, target: SharedCommonizerTarget) ->
             assertEquals(prettyName, target.prettyName)
         }
@@ -49,34 +47,9 @@ class CommonizerTargetPrettyNameTest {
     }
 
     @Test
-    fun prettyNestedName() {
-        val target = parseCommonizerTarget("(a, b, (c, (d, e)))") as SharedCommonizerTarget
-
-        assertEquals(
-            "[a, b, [c, [d, e]]]", target.prettyName
-        )
-
-        assertEquals(
-            "[a, b, [c, [d, e(*)]]]", target.prettyName(LeafCommonizerTarget("e"))
-        )
-
-        assertEquals(
-            "[a, b, [c, [d, e](*)]]", target.prettyName(parseCommonizerTarget("(d, e)"))
-        )
-
-        assertEquals(
-            "[a, b, [c, [d, e]](*)]", target.prettyName(parseCommonizerTarget("(c, (d, e))"))
-        )
-
-        assertEquals(
-            "[a, b(*), [c, [d, e]]]", target.prettyName(LeafCommonizerTarget("b"))
-        )
-    }
-
-    @Test
     fun sharedTargetNoInnerTargets() {
         assertEquals(
-            "[]", SharedCommonizerTarget(emptySet<CommonizerTarget>()).prettyName
+            "[]", SharedCommonizerTarget(emptySet<LeafCommonizerTarget>()).prettyName
         )
     }
 
@@ -86,8 +59,6 @@ class CommonizerTargetPrettyNameTest {
         val BAZ = LeafCommonizerTarget("baz_123")
 
         @Suppress("TestFunctionName")
-        fun SharedTarget(vararg targets: CommonizerTarget) = SharedCommonizerTarget(linkedSetOf(*targets))
+        fun SharedTarget(vararg targets: LeafCommonizerTarget) = SharedCommonizerTarget(linkedSetOf(*targets))
     }
-
-     */
 }
