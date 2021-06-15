@@ -1014,7 +1014,7 @@ open class RawFirBuilder(
                     receiverTypeRef = receiverType
                     name = function.nameAsSafeName
                     labelName = runIf(!name.isSpecial) { name.identifier }
-                    symbol = FirNamedFunctionSymbol(callableIdForName(function.nameAsSafeName, function.isLocal))
+                    symbol = FirNamedFunctionSymbol(callableIdForName(function.nameAsSafeName))
                     dispatchReceiverType = currentDispatchReceiverType()
                     status = FirDeclarationStatusImpl(
                         if (function.isLocal) Visibilities.Local else function.visibility,

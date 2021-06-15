@@ -1406,7 +1406,7 @@ class DeclarationsConverter(
                     isSuspend = modifiers.hasSuspend()
                 }
 
-                symbol = FirNamedFunctionSymbol(callableIdForName(functionName, isLocal))
+                symbol = FirNamedFunctionSymbol(callableIdForName(functionName))
                 dispatchReceiverType = currentDispatchReceiverType()
             }
         }

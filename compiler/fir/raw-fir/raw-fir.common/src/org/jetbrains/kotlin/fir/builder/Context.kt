@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.name.Name
 class Context<T> {
     lateinit var packageFqName: FqName
     var className: FqName = FqName.ROOT
-    val localBits: MutableList<Boolean> = mutableListOf()
-    val currentClassId get() = ClassId(packageFqName, className, localBits.lastOrNull() ?: false)
+    var inLocalContext: Boolean = false
+    val currentClassId get() = ClassId(packageFqName, className, inLocalContext)
 
     val firFunctionTargets = mutableListOf<FirFunctionTarget>()
     val calleeNamesForLambda = mutableListOf<Name>()
