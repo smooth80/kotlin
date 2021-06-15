@@ -787,7 +787,7 @@ open class RawFirBuilder(
                             typeParameters
                         )
                         // Use ANONYMOUS_OBJECT_NAME for the owner class id for enum entry declarations (see KT-42351)
-                        withChildClassName(ANONYMOUS_OBJECT_NAME, isLocal = true) {
+                        withChildClassName(ANONYMOUS_OBJECT_NAME, forceLocalContext = true) {
                             for (declaration in ktEnumEntry.declarations) {
                                 declarations += declaration.toFirDeclaration(
                                     correctedEnumSelfTypeRef,
@@ -816,7 +816,7 @@ open class RawFirBuilder(
             val isLocal = classOrObject.isLocal || classOrObject.getStrictParentOfType<KtEnumEntry>() != null
             return withChildClassName(
                 classOrObject.nameAsSafeName,
-                isLocal = isLocal
+                forceLocalContext = isLocal
             ) {
                 val classKind = when (classOrObject) {
                     is KtObjectDeclaration -> ClassKind.OBJECT
