@@ -32,6 +32,15 @@ class MemoryHog(val size: Int, val value: Byte, val stride: Int) {
     }
 }
 
+val peakRssBytes: Long
+    get() {
+        val value = MemoryUsageInfo.peakResidentSetSizeBytes
+        if (value == 0L) {
+            fail("Error trying to obtain peak RSS. Check if current platform is supported")
+        }
+        return value
+    }
+
 @Test
 fun test() {
     // One item is ~10MiB.
@@ -41,8 +50,8 @@ fun test() {
     val value: Byte = 42
     // Try to make sure each page is written
     val stride = 4096
-    // Limit maximum memory usage at ~200MiB
-    val rssLimit: Long = 200_000_000
+    // Limit memory usage at ~200MiB
+    val rssDiffLimit: Long = 200_000_000
     // Trigger GC after ~100MiB are allocated
     val retainLimit: Long = 100_000_000
     val progressReportsCount = 100
@@ -53,19 +62,20 @@ fun test() {
         kotlin.native.internal.GC.threshold = Int.MAX_VALUE
     }
 
+    // On Linux, the child process might immediately commit the same amount of memory as the parent.
+    // So, measure difference between peak RSS measurements.
+    val initialPeakRss = peakRssBytes
+
     for (i in 0..count) {
         if (i % (count / progressReportsCount) == 0) {
             println("Allocating iteration ${i + 1} of $count")
         }
-        val currentPeakRss = MemoryUsageInfo.peakResidentSetSizeBytes
-        if (currentPeakRss == 0L) {
-            fail("Error trying to obtain peak RSS. Check if current platform is supported")
-        }
-        if (currentPeakRss > rssLimit) {
-            // If GC does not exist, this should eventually fail.
-            fail("Current RSS $currentPeakRss is more than the limit $rssLimit")
-        }
         MemoryHog(size, value, stride)
+        val diffPeakRss = peakRssBytes - initialPeakRss
+        if (diffPeakRss > rssDiffLimit) {
+            // If GC does not exist, this should eventually fail.
+            fail("Increased peak RSS by $diffPeakRss which is more than $rssDiffLimit")
+        }
     }
 
     // Make sure `Blackhole` does not get optimized out.
