@@ -14,9 +14,6 @@ println("# Extracting info:")
 println("    isTeamcityBuild: ${isTeamcityBuild}")
 println("    kotlinVersion: ${kotlinVersion}")
 println("    repo: ${repo}")
-println("    System.getProperty(\"deployVersion\"): ${System.getProperty("deployVersion")}")
-println("    findProperty(\"deployVersion\"): ${findProperty("deployVersion")}")
-println("    rootProject.findProperty(\"deployVersion\"): ${rootProject.findProperty("deployVersion")}")
 
 repositories {
   maven { url = repo }
