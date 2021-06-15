@@ -789,8 +789,9 @@ internal object CheckContextReceiversResolutionPart : ResolutionPart() {
     }
 
     override fun KotlinResolutionCandidate.process(workIndex: Int) {
-        val implicitReceivers = scopeTower.lexicalScope.parentsWithSelf
-            .flatMap { if (it is LexicalScope) scopeTower.getImplicitReceivers(it) else emptyList() }.toList()
+        val implicitReceivers = scopeTower.lexicalScope.parentsWithSelf.filterIsInstance<LexicalScope>().flatMap {
+            listOfNotNull(scopeTower.getImplicitReceiver(it)) + scopeTower.getContextReceivers(it)
+        }.toList()
         val contextReceiversArguments = mutableListOf<SimpleKotlinCallArgument>()
         for (candidateContextReceiverParameter in candidateDescriptor.contextReceiverParameters) {
             contextReceiversArguments.add(findContextReceiver(implicitReceivers, candidateContextReceiverParameter) ?: return)

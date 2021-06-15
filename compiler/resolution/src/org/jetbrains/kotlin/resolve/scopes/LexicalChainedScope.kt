@@ -32,7 +32,7 @@ class LexicalChainedScope private constructor(
     parent: LexicalScope,
     override val ownerDescriptor: DeclarationDescriptor,
     override val isOwnerDescriptorAccessibleByLabel: Boolean,
-    override val implicitReceivers: List<ReceiverParameterDescriptor>,
+    override val implicitReceiver: ReceiverParameterDescriptor?,
     override val contextReceiversGroup: List<ReceiverParameterDescriptor>,
     override val kind: LexicalScopeKind,
     // NB. Here can be very special subtypes of MemberScope (e.g., DeprecatedMemberScope).
@@ -81,7 +81,7 @@ class LexicalChainedScope private constructor(
             "; for descriptor: ",
             ownerDescriptor.name,
             " with implicitReceiver: ",
-            if (implicitReceivers.isEmpty()) "NONE" else implicitReceivers.joinToString { it.value.toString() },
+            implicitReceiver?.value ?: "NONE",
             " with contextReceiversGroup: ",
             if (contextReceiversGroup.isEmpty()) "NONE" else contextReceiversGroup.joinToString { it.value.toString() },
             " {"
@@ -114,14 +114,14 @@ class LexicalChainedScope private constructor(
             parent: LexicalScope,
             ownerDescriptor: DeclarationDescriptor,
             isOwnerDescriptorAccessibleByLabel: Boolean,
-            implicitReceivers: List<ReceiverParameterDescriptor>,
+            implicitReceiver: ReceiverParameterDescriptor?,
             contextReceiversGroup: List<ReceiverParameterDescriptor>,
             kind: LexicalScopeKind,
             vararg memberScopes: MemberScope?,
             isStaticScope: Boolean = false
         ): LexicalScope =
             LexicalChainedScope(
-                parent, ownerDescriptor, isOwnerDescriptorAccessibleByLabel, implicitReceivers, contextReceiversGroup, kind,
+                parent, ownerDescriptor, isOwnerDescriptorAccessibleByLabel, implicitReceiver, contextReceiversGroup, kind,
                 listOfNonEmptyScopes(*memberScopes).toTypedArray(),
                 isStaticScope
             )
