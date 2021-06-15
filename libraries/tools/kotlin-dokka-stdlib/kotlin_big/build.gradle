@@ -30,7 +30,14 @@ final List<String> modules = [
 ]
 
 
-task extractLibs() { }
+task extractLibs() {
+  doFirst {
+    println("Extracting...")
+    println("isTeamcityBuild: ${isTeamcityBuild}")
+    println("kotlinVersion: ${kotlinVersion}")
+    println("repo: ${repo}")
+  }
+}
 
 
 modules.forEach { module ->
