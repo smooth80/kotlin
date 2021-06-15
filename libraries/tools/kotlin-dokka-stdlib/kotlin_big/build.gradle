@@ -10,6 +10,11 @@ final File kotlinLibsDir = new File(buildDir, 'libs')
 final String kotlinVersion = isTeamcityBuild ? System.getProperty("deployVersion") : "1.5.255-SNAPSHOT"
 final String repo = isTeamcityBuild ? new File(buildDir, 'repo') : new File(kotlinRootDir, 'build/repo')
 
+println("# Extracting info:")
+println("    isTeamcityBuild: ${isTeamcityBuild}")
+println("    kotlinVersion: ${kotlinVersion}")
+println("    repo: ${repo}")
+
 repositories {
   maven { url = repo }
   mavenCentral()
@@ -30,14 +35,7 @@ final List<String> modules = [
 ]
 
 
-task extractLibs() {
-  doFirst {
-    println("Extracting...")
-    println("isTeamcityBuild: ${isTeamcityBuild}")
-    println("kotlinVersion: ${kotlinVersion}")
-    println("repo: ${repo}")
-  }
-}
+task extractLibs() { }
 
 
 modules.forEach { module ->
