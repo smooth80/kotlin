@@ -19,6 +19,11 @@
 
 using namespace kotlin;
 
+// this values will be substituted by compiler
+extern "C" const void **Kotlin_callsCheckerKnownFunctions = nullptr;
+extern "C" int Kotlin_callsCheckerKnownFunctionsCount = 0;
+
+
 namespace {
 
 constexpr const char* goodFunctionNames[] = {
@@ -213,42 +218,21 @@ constexpr const char* goodFunctionNames[] = {
 
 };
 
+thread_local bool recursiveCallGuard = false;
+
 class KnownFunctionChecker {
-    int read_pipe = -1;
-    int write_pipe = -1;
+    std::unordered_set<const void*> known_functions;
     std::string_view good_names_copy[sizeof(goodFunctionNames) / sizeof(goodFunctionNames[0])];
 
-    static constexpr int64_t PREFIX_MAGIC = 0x2ff68e62079bd1ac; // duplicated in compiler
 public:
-    /**
-     * If checking mode is enabled, each non-external function have prefix
-     * equal to PREFIX_MAGIC
-     *
-     * Function pointers received by this function can be very strange,
-     * in particular, memory before them may by even not readable.
-     *
-     * To avoid SIGSEGV on reading function prefix data, it's written to pipe,
-     * which can correctly handle unreadable memory. If it's succeed, memory
-     * can be read from other pipe end. If it's failed --- there is no good
-     * prefix before this function
-     */
-    bool isKnownByPrefix(const void* fun) noexcept {
-        if (read_pipe == -1) {
-            int ps[2];
-            int ret = pipe(ps);
-            RuntimeCheck(ret == 0, "failed to create pipes for checking functions: %s, error_code = %d", strerror(errno), ret);
-            read_pipe = ps[0];
-            write_pipe = ps[1];
+    bool isKnown(const void* fun) noexcept {
+        if (known_functions.empty()) {
+            for (int i = 0; i < Kotlin_callsCheckerKnownFunctionsCount; i++) {
+                known_functions.insert(Kotlin_callsCheckerKnownFunctions[i]);
+            }
         }
 
-        int64_t data;
-        if (write(write_pipe, reinterpret_cast<const decltype(data)*>(fun) - 1, sizeof(data)) != sizeof(data)) {
-            return false;
-        }
-        ssize_t bytesRead = read(read_pipe, &data, sizeof(data));
-        RuntimeCheck(bytesRead == sizeof(data), "Failed to read data back from pipe");
-
-        return data == PREFIX_MAGIC;
+        return known_functions.find(fun) != known_functions.end();
     }
 
     bool isSafeByName(std::string_view name) noexcept {
@@ -272,25 +256,17 @@ public:
         return false;
     }
 
-    ~KnownFunctionChecker() {
-        if (read_pipe != -1) {
-            close(read_pipe);
-            read_pipe = -1;
-        }
-        if (write_pipe != -1) {
-            close(write_pipe);
-            write_pipe = -1;
-        }
-    }
+    ~KnownFunctionChecker() { recursiveCallGuard = true; }
 };
 
-thread_local bool recursiveCallGuard = false;
 thread_local KnownFunctionChecker checker;
+
 
 constexpr int MSG_SEND_TO_NULL = -1;
 constexpr int CALLED_LLVM_BUILTIN = -2;
 
 }
+
 /**
  * This function calls is inserted to llvm bitcode automatically, so it can be called almost anywhre.
  *
@@ -317,7 +293,7 @@ extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const
     if (actualState == ThreadState::kNative) {
         return;
     }
-    if (reinterpret_cast<int64_t>(calleePtr) != CALLED_LLVM_BUILTIN && checker.isKnownByPrefix(calleePtr)) {
+    if (reinterpret_cast<int64_t>(calleePtr) != CALLED_LLVM_BUILTIN && checker.isKnown(calleePtr)) {
         return;
     }
 

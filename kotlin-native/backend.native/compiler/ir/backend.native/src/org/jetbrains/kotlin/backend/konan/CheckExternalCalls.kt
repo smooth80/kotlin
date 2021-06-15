@@ -130,12 +130,17 @@ private class CallsChecker(val context: Context) {
 
 internal fun checkLlvmModuleExternalCalls(context: Context) {
     val checker = CallsChecker(context)
-    val magicValue = Int64(0x2ff68e62079bd1ac) // this constant in duplicated in runtime
-    getFunctions(context.llvmModule!!).forEach {
-        checker.processFunction(it)
-        if (!it.isExternalFunction()) {
-            LLVMSetPrefixData(it, magicValue.llvm)
-        }
-    }
+    val functions = getFunctions(context.llvmModule!!)
+            .filter { !it.isExternalFunction() }
+            .toList()
+    functions.forEach(checker::processFunction)
+    val functionsArray = ConstArray(int8TypePtr, functions.map { constPointer(LLVMConstBitCast(it, int8TypePtr)!!) })
+    val functionsArrayGlobal = context.llvm.staticData.placeGlobal("", functionsArray, false)
+    LLVMGetNamedGlobal(context.llvmModule, "Kotlin_callsCheckerKnownFunctions")?.apply {
+        LLVMSetInitializer(this, LLVMConstGEP(functionsArrayGlobal.llvmGlobal, listOf(Int32(0).llvm, Int32(0).llvm).toCValues(), 2))
+    } ?: throw IllegalStateException("Kotlin_callsCheckerKnownFunctions global not found")
+    LLVMGetNamedGlobal(context.llvmModule, "Kotlin_callsCheckerKnownFunctionsCount")?.apply {
+        LLVMSetInitializer(this, Int32(functions.size).llvm)
+    } ?: throw IllegalStateException("Kotlin_callsCheckerKnownFunctionsCount global not found")
     context.verifyBitCode()
 }
