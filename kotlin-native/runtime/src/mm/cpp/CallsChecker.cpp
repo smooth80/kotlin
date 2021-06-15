@@ -181,6 +181,36 @@ constexpr const char* goodFunctionNames[] = {
         "$ss28_SwiftDictionaryNSEnumeratorC10nextObjectyXlSgyFTo",
         // reabstraction thunk helper from @escaping @callee_guaranteed (@in_guaranteed Any?, @guaranteed Swift.Error?) -> () to @escaping @callee_unowned @convention(block) (@unowned Swift.AnyObject?, @unowned __C.NSError?) -> ()
         "$sypSgs5Error_pSgIegng_yXlSgSo7NSErrorCSgIeyByy_TR",
+
+        "llvm.assume",
+        "llvm.ceil.*",
+        "llvm.copysign.*",
+        "llvm.cos.*",
+        "llvm.ctlz.*",
+        "llvm.dbg.*",
+        "llvm.eh.typeid.for",
+        "llvm.exp.*",
+        "llvm.fabs.*",
+        "llvm.fabs.*",
+        "llvm.floor.*",
+        "llvm.lifetime.*",
+        "llvm.log.*",
+        "llvm.log10.*",
+        "llvm.log2.*",
+        "llvm.memcpy.*",
+        "llvm.memmove.*",
+        "llvm.memset.*",
+        "llvm.objectsize.*",
+        "llvm.pow.*",
+        "llvm.rint.*",
+        "llvm.sin.*",
+        "llvm.sqrt.*",
+        "llvm.umul.*",
+        "llvm.va_end",
+        "llvm.va_start",
+        "llvm.x86.avx2.*",
+        "llvm.x86.ssse3.*",
+
 };
 
 class KnownFunctionChecker {
@@ -226,7 +256,20 @@ public:
             std::copy(std::begin(goodFunctionNames), std::end(goodFunctionNames), std::begin(good_names_copy));
             std::sort(std::begin(good_names_copy), std::end(good_names_copy));
         }
-        return std::binary_search(std::begin(good_names_copy), std::end(good_names_copy), name);
+        auto it = std::lower_bound(std::begin(good_names_copy), std::end(good_names_copy), name);
+        auto check = [&](std::string_view banned) {
+            if (banned.back() != '*') {
+                return banned == name;
+            }
+            return name.substr(0, banned.size() - 1) == banned.substr(0, banned.size() - 1);
+        };
+        if (it != std::end(good_names_copy) && check(*it)) {
+           return true;
+        }
+        if (it != std::begin(good_names_copy) && check(*std::prev(it))) {
+           return true;
+        }
+        return false;
     }
 
     ~KnownFunctionChecker() {
@@ -244,6 +287,9 @@ public:
 thread_local bool recursiveCallGuard = false;
 thread_local KnownFunctionChecker checker;
 
+constexpr int MSG_SEND_TO_NULL = -1;
+constexpr int CALLED_LLVM_BUILTIN = -2;
+
 }
 /**
  * This function calls is inserted to llvm bitcode automatically, so it can be called almost anywhre.
@@ -256,7 +302,7 @@ thread_local KnownFunctionChecker checker;
  * which requires special handling of recursive calls from this check.
  */
 extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const char* caller, const char *callee, const void *calleePtr) noexcept {
-    if (reinterpret_cast<int64_t>(calleePtr) == -1) return; // objc_sendMsg called on nil, it does nothing, so it's ok
+    if (reinterpret_cast<int64_t>(calleePtr) == MSG_SEND_TO_NULL) return; // objc_sendMsg called on nil, it does nothing, so it's ok
     if (!strcmp(caller, "_ZN5konan36isOnThreadExitNotSetOrAlreadyStartedEv")) return;
     if (konan::isOnThreadExitNotSetOrAlreadyStarted()) return;
     if (recursiveCallGuard) return;
@@ -271,7 +317,7 @@ extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const
     if (actualState == ThreadState::kNative) {
         return;
     }
-    if (checker.isKnownByPrefix(calleePtr)) {
+    if (reinterpret_cast<int64_t>(calleePtr) != CALLED_LLVM_BUILTIN && checker.isKnownByPrefix(calleePtr)) {
         return;
     }
 

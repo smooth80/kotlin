@@ -47,7 +47,9 @@ private class CallsChecker(val context: Context) {
         fun cleanCalledFunction(value: LLVMValueRef): ExternalCallInfo? {
             return when {
                 LLVMIsAFunction(value) != null -> {
-                    ExternalCallInfo(value.name!!, value).takeIf { value.isExternalFunction() && !value.isLLVMBuiltin() }
+                    val valueOrSpecial = value.takeIf { !it.isLLVMBuiltin() }
+                            ?: LLVMConstIntToPtr(Int64(CALLED_LLVM_BUILTIN).llvm, int8TypePtr)!!
+                    ExternalCallInfo(value.name!!, valueOrSpecial).takeIf { value.isExternalFunction() }
                 }
                 LLVMIsACastInst(value) != null -> cleanCalledFunction(LLVMGetOperand(value, 0)!!)
                 isIndirectCallArgument(value) -> ExternalCallInfo(null, value) // this is a callback call
@@ -88,7 +90,7 @@ private class CallsChecker(val context: Context) {
                     val firstArgClassPtr = LLVMBuildCall(builder, getClass, listOf(firstArgI8Ptr).toCValues(), 1, "")
                     val isNil = LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, firstArgI8Ptr, LLVMConstNull(int8TypePtr), "")
                     val calledPtrLlvmIfNotNil = LLVMBuildCall(builder, getMethodImpl, listOf(firstArgClassPtr, LLVMGetArgOperand(call, 1)).toCValues(), 2, "")
-                    val calledPtrLlvmIfNil = LLVMConstIntToPtr(Int64(-1).llvm, int8TypePtr)
+                    val calledPtrLlvmIfNil = LLVMConstIntToPtr(Int64(MSG_SEND_TO_NULL).llvm, int8TypePtr)
                     calledPtrLlvm = LLVMBuildSelect(builder, isNil, calledPtrLlvmIfNil, calledPtrLlvmIfNotNil, "")
                 }
                 "objc_msgSendSuper2" -> {
@@ -118,6 +120,11 @@ private class CallsChecker(val context: Context) {
         getBasicBlocks(function).forEach {
             processBasicBlock(function.name!!, it)
         }
+    }
+
+    companion object {
+        const val MSG_SEND_TO_NULL: Long = -1
+        const val CALLED_LLVM_BUILTIN: Long = -2
     }
 }
 
