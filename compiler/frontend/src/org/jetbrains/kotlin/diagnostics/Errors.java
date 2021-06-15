@@ -806,7 +806,7 @@ public interface Errors {
 
     // Type inference
 
-    DiagnosticFactory0<KtParameter> CANNOT_INFER_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> CANNOT_INFER_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory1<PsiElement, InferenceErrorData> TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory1.create(ERROR);

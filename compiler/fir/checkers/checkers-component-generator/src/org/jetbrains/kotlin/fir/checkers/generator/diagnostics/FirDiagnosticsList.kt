@@ -660,7 +660,7 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
             parameter<ConeKotlinType>("varargParameterType")
         }
         val VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION by error<KtParameter>()
-        val CANNOT_INFER_PARAMETER_TYPE by error<KtParameter>()
+        val CANNOT_INFER_PARAMETER_TYPE by error<PsiElement>()
     }
 
     val FUN_INTERFACES by object : DiagnosticGroup("Fun interfaces") {

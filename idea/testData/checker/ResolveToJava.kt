@@ -1,4 +1,3 @@
-// IGNORE_FIR
 import java.*
 import java.util.*
 import <error>utils</error>.*
