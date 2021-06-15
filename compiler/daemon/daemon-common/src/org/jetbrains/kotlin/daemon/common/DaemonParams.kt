@@ -345,6 +345,10 @@ fun configureDaemonJVMOptions(opts: DaemonJVMOptions,
         if (CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.toBooleanLenient()) {
             opts.jvmParams.add("D${CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property}")
         }
+        //Temporary solution to test abi snapshot
+        if (CompilerSystemProperties.COMPILE_INCREMENTAL_WITH_CLASSPATH_SHAPSHOTS.toBooleanLenient()) {
+            opts.jvmParams.add("D${CompilerSystemProperties.COMPILE_INCREMENTAL_WITH_CLASSPATH_SHAPSHOTS.property}")
+        }
     }
 
     if (opts.jvmParams.none { it.matches(jvmAssertArgsRegex) }) {

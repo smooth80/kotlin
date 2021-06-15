@@ -952,7 +952,7 @@ Finished executing task ':$taskName'|
                 add("--dry-run")
             }
             if (options.abiSnapshot) {
-                add("-Pkotlin.incremental.classpath.snapshot.enabled=true")
+                add("-Dkotlin.incremental.classpath.snapshot.enabled=true")
             }
 
             add("-Dorg.gradle.unsafe.configuration-cache=${options.configurationCache}")

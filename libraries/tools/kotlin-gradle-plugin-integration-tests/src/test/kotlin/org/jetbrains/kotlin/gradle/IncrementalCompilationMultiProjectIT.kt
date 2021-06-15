@@ -303,6 +303,40 @@ open class A {
         }
     }
 
+    @Test
+    fun testCleanBuildLibForAbiSnapshot() {
+        val options = defaultBuildOptions().copy(abiSnapshot = true)
+        val project = defaultProject()
+
+        project.build("build") {
+            assertSuccessful()
+        }
+
+        project.build(":lib:clean") {
+            assertSuccessful()
+        }
+
+        // Change file so Gradle won't skip :app:compile
+        project.projectFile("BarDummy.kt").modify {
+            it.replace("class BarDummy", "open class BarDummy")
+        }
+
+        //don't need to recompile app classes because lib's proto stays the same
+        project.build("build") {
+            assertSuccessful()
+            val affectedSources = project.projectDir.resolve("lib").allKotlinFiles()
+            val relativePaths = project.relativize(affectedSources)
+            assertCompiledKotlinSources(relativePaths)
+        }
+
+        val aaKt = project.projectFile("AA.kt")
+        aaKt.modify { "$it " }
+        project.build("build") {
+            assertSuccessful()
+            assertCompiledKotlinSources(project.relativize(aaKt))
+        }
+    }
+
     protected abstract val additionalLibDependencies: String
     protected abstract val compileKotlinTaskName: String
 
