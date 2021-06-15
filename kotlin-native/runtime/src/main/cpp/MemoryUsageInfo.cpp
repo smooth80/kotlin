@@ -37,7 +37,7 @@ size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
     size_t maxrss = static_cast<size_t>(usage.ru_maxrss * 1024);
 #elif KONAN_MACOSX || KONAN_IOS
     // On macOS and iOS it's in bytes.
-    size_t maxrss = static_cast<size_t>(usage.ru_maxrss * 1024);
+    size_t maxrss = static_cast<size_t>(usage.ru_maxrss);
 #else
 #error "Check what units ru_maxrss is in."
 #endif
